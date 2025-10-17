@@ -13,14 +13,14 @@ function Dashboard({ stats }) {
   const items = stats && Array.isArray(stats) && stats.length ? stats : defaultStats;
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-semibold mb-4">Dashboard</h2>
+    <div className="container mx-auto p-4 h-full">
+      <h2 className="text-2xl font-semibold mt-12 text-center">Dashboard</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 place-items-center gap-8 mt-12">
         {items.map((s) => (
           <div
             key={s.key}
-            className="card bg-base-100 shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200"
+            className="card bg-base-100 shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200 w-56"
           >
             <div className="card-body p-4 flex items-center gap-4">
               <div className="avatar">

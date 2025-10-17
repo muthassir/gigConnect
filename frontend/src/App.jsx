@@ -4,14 +4,14 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Dashboard from "./components/Dashboard";
 import Login from "./pages/Login";
-// import { AuthProvider } from './context/AuthContext.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
 
 
 const App = () => {
   return (
    <div>
      <Router>
-          {/* <AuthProvider> */}
+          <AuthProvider>
       <Navbar />
       <Routes>
         <Route path="/" element={<Dashboard />} />
@@ -19,7 +19,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
       </Routes>
       <Footer />
-      {/* </AuthProvider> */}
+      </AuthProvider>
     </Router>
    </div>
   );
