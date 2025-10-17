@@ -1,46 +1,43 @@
 import React from "react";
+import { FaTasks, FaComments, FaCheckCircle, FaStar } from "react-icons/fa";
 
-function Dashboard() {
+
+function Dashboard({ stats }) {
+  const defaultStats = [
+    { key: "gigs", title: "Total Gigs", value: 0, icon: <FaTasks size={24} /> },
+    { key: "messages", title: "Messages", value: 0, icon: <FaComments size={24} /> },
+    { key: "completed", title: "Completed Gigs", value: 0, icon: <FaCheckCircle size={24} /> },
+    { key: "reviews", title: "Pending Reviews", value: 0, icon: <FaStar size={24} /> },
+  ];
+
+  const items = stats && Array.isArray(stats) && stats.length ? stats : defaultStats;
+
   return (
-    <div className="container mt-4">
-      <h2 className="mb-4">Dashboard</h2>
+    <div className="container mx-auto p-4">
+      <h2 className="text-2xl font-semibold mb-4">Dashboard</h2>
 
-      <div className="row">
-        <div className="col-md-3 mb-3">
-          <div className="card text-center shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title">Total Gigs</h5>
-              <p className="card-text fs-4 fw-bold">0</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+        {items.map((s) => (
+          <div
+            key={s.key}
+            className="card bg-base-100 shadow-md hover:shadow-lg transform hover:-translate-y-1 transition-all duration-200"
+          >
+            <div className="card-body p-4 flex items-center gap-4">
+              <div className="avatar">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  {s.icon}
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <div className="text-sm text-muted"> {s.title} </div>
+                <div className="text-2xl font-bold mt-1">{s.value}</div>
+              </div>
+
+              <div className="text-xs text-gray-400"> {/* small chevron or extra */} </div>
             </div>
           </div>
-        </div>
-
-        <div className="col-md-3 mb-3">
-          <div className="card text-center shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title">Messages</h5>
-              <p className="card-text fs-4 fw-bold">0</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3 mb-3">
-          <div className="card text-center shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title">Completed Gigs</h5>
-              <p className="card-text fs-4 fw-bold">0</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-md-3 mb-3">
-          <div className="card text-center shadow-sm">
-            <div className="card-body">
-              <h5 className="card-title">Pending Reviews</h5>
-              <p className="card-text fs-4 fw-bold">0</p>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

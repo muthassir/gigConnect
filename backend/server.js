@@ -15,14 +15,12 @@ app.use(express.json())
 mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-}).then(() => {
-    console.log("MongoDB connected");
-}   ).catch((err) => {
-    console.log(err);
-})
+}).then(() => { console.log("MongoDB connected") })
+  .catch((err) => { console.log(err) })
 
 // routes
 app.use("/api/auth", require("./routes/authRoute.js"))
+app.use("/api/users", require("./routes/userRoute.js"))
 
 app.listen(process.env.PORT , ()=>{
     console.log(`server started at port ${process.env.PORT}`);

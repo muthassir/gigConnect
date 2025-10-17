@@ -1,88 +1,58 @@
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const {login} = useAuth()
+
+  const handleLogin = async(e) => {
     e.preventDefault();
-    console.log("Email:", email);
-    console.log("Password:", password);
-    alert("Login functionality coming soon!");
-    // Later: connect this to your backend API or Firebase auth
+     
+    if (!email || !password) {
+      setError('Please fill in all fields');
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+     const result = await login(email, password);
+
+    if (!result.success) {
+      setError(result.message);
+    }
+
+    setLoading(false);
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        backgroundColor: "#f0f4f8",
-      }}
-    >
-      <form
-        onSubmit={handleLogin}
-        style={{
-          backgroundColor: "white",
-          padding: "40px",
-          borderRadius: "12px",
-          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-          width: "350px",
-          textAlign: "center",
-        }}
-      >
-        <h2 style={{ marginBottom: "20px", color: "#333" }}>Login</h2>
-
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={inputStyle}
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={inputStyle}
-        />
-
-        <button type="submit" style={buttonStyle}>
-          Login
-        </button>
-
-        <p style={{ marginTop: "15px", color: "#666" }}>
-          Don't have an account? <a href="#" style={{ color: "#1dbf73" }}>Sign Up</a>
-        </p>
-      </form>
+   <div className="hero bg-base-200 min-h-screen">
+  <div className="hero-content flex-col lg:flex-row-reverse">
+    <div className="text-center lg:text-left">
+      <h1 className="text-5xl font-bold">Login now!</h1>
+      <p className="py-6">
+        Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
+        quasi. In deleniti eaque aut repudiandae et a id nisi.
+      </p>
     </div>
+    <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+      <div className="card-body">
+        {error && <div>{error}</div>}
+        <fieldset className="fieldset">
+          <label className="label">Email</label>
+          <input type="email" className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)}/>
+          <label className="label">Password</label>
+          <input type="password" className="input" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} />
+          <div><a className="link link-hover">Forgot password?</a></div>
+          <button className="btn btn-neutral mt-4" onClick={handleLogin} disabled={loading}>{loading ? "loading" : "login"}</button>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+</div>
   );
 };
-
-const inputStyle = {
-  width: "100%",
-  padding: "10px",
-  marginBottom: "15px",
-  borderRadius: "6px",
-  border: "1px solid #ccc",
-  fontSize: "16px",
-};
-
-const buttonStyle = {
-  width: "100%",
-  padding: "10px",
-  backgroundColor: "#1dbf73",
-  color: "white",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-  fontSize: "16px",
-};
-
 export default Login;

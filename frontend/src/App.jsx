@@ -3,11 +3,15 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Dashboard from "./components/Dashboard";
-import Login from "./pages/login";
+import Login from "./pages/Login";
+// import { AuthProvider } from './context/AuthContext.jsx';
+
 
 const App = () => {
   return (
-    <Router>
+   <div>
+     <Router>
+          {/* <AuthProvider> */}
       <Navbar />
       <Routes>
         <Route path="/" element={<Dashboard />} />
@@ -15,7 +19,9 @@ const App = () => {
         <Route path="/login" element={<Login />} />
       </Routes>
       <Footer />
+      {/* </AuthProvider> */}
     </Router>
+   </div>
   );
 };
 
