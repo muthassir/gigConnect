@@ -20,7 +20,8 @@ exports.register = async (req, res) => {
         const token = generateToken(newUser._id);
         res.status(201).json({ token });
     } catch (error) {
-        res.status(500).json({ message: 'Server error' });
+        console.error('Register controller error:', error); 
+  res.status(500).json({ message: error.message || 'Server error' });
     }   
 };
 

@@ -4,24 +4,25 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Dashboard from "./components/Dashboard";
 import Login from "./pages/Login";
-import { AuthProvider } from './context/AuthContext.jsx';
-
+import Register from "./pages/Register";
+import { AuthProvider } from "./context/AuthContext.jsx";``
 
 const App = () => {
   return (
-   <div>
-     <Router>
-          <AuthProvider>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-         <Route path="/dashboard" element={<Dashboard />} /> 
-        <Route path="/login" element={<Login />} />
-      </Routes>
-      <Footer />
-      </AuthProvider>
-    </Router>
-   </div>
+    <div>
+      <Router>
+        <AuthProvider>
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+          </Routes>
+          <Footer />
+        </AuthProvider>
+      </Router>
+    </div>
   );
 };
 

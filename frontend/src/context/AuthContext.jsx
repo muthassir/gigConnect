@@ -56,23 +56,28 @@ export const AuthProvider = ({ children }) => {
   };
 
   // register
-  const register = async (name, email, password) => {
+  const register = async (username, email, password) => {
     try {
       setLoading(true);
       const response = await API.post("/api/auth/register", {
-        name,
+        username,
         email,
         password,
       });
-      const { token, user } = response.data;
+      const { token } = response.data;
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       setAuthHeader(token);
       setUser(user);
-      return user;
+      return { success: true, user };
     } catch (error) {
-      const message = error.response?.data?.message || "Registration failed";
-      throw new Error(message);
+      console.error("Register error:", error?.response?.data ?? error.message ?? error);
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data ||
+        error?.message ||
+        "Registration failed";
+      return { success: false, message };
     } finally {
       setLoading(false);
     }
