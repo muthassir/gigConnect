@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import Alert from "../components/Alert";
 
 const Register = () => {
     const [username, setUsername] = useState("");
@@ -42,7 +43,7 @@ const Register = () => {
 };
 
   return (
-   <div className="hero bg-base-200 min-h-screen">
+   <div className="absolute top-0 z-10 hero bg-base-200 min-h-screen">
   <div className="hero-content flex-col flex md:flex-row gap-18">
     <div className="text-center lg:text-left">
       <h1 className="text-5xl font-bold text-success">Register now!</h1>
@@ -53,7 +54,7 @@ const Register = () => {
     </div>
     <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
       <div className="card-body">
-        {error && <div>{error}</div>}
+        {error && <Alert alert={error} />}
         <fieldset className="fieldset">
           <label className="label">Name</label>
           <input type="text" className="input" placeholder="Username" value={username} onChange={(e)=>setUsername(e.target.value)}/>
@@ -64,7 +65,9 @@ const Register = () => {
           <div><a className="link link-hover">Forgot password?</a></div>
           <button className="btn btn-success mt-4" onClick={handleRegister} disabled={loading}>{loading ? "loading" : "Register"}</button>
           <div className="divider">or</div>
-          <button className="btn btn-neutral mt-2" disabled={loading}>Login</button>
+          <button className="btn btn-neutral mt-2" disabled={loading}>
+            <Link to="/login">Sign-In</Link>
+          </button>
         </fieldset>
       </div>
     </div>

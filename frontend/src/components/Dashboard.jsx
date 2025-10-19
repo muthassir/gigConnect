@@ -14,9 +14,9 @@ function Dashboard({ stats }) {
 
   return (
     <div className="container mx-auto p-4 h-full">
-      <h2 className="text-2xl font-semibold mt-12 text-center">Dashboard</h2>
+      <h2 className="text-2xl font-semibold mt-16 text-center">Dashboard</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 place-items-center gap-8 mt-12">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 place-items-center gap-8 mt-16">
         {items.map((s) => (
           <div
             key={s.key}
