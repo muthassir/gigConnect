@@ -7,7 +7,7 @@ const generateToken = (userId) => {
 }
 
 exports.register = async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, role } = req.body;
 
     try {
         const existingUser = await User.findOne({ email });
@@ -15,7 +15,7 @@ exports.register = async (req, res) => {
             return res.status(400).json({ message: 'Email already in use' });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, email, password: hashedPassword });
+        const newUser = new User({ username, email, password: hashedPassword, role });
         await newUser.save();
         const token = generateToken(newUser._id);
         res.status(201).json({ token });

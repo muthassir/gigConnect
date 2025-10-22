@@ -8,7 +8,7 @@ const Navbar = () => {
   const { user } = useAuth();
 
   return (
-    <header className="navbar bg-base-100 shadow-sm fixed z-10">
+    <header className="navbar bg-base-100 shadow-sm fixed absolute top-0 z-10">
       {/* Left: Dropdown Menu */}
       <div className="navbar-start">
         <div className="dropdown">

@@ -7,9 +7,11 @@ const Register = () => {
     const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
+  console.log(role);
+  
   const navigate = useNavigate();
 
   const {register} = useAuth()
@@ -62,7 +64,11 @@ const Register = () => {
           <input type="email" className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)}/>
           <label className="label">Password</label>
           <input type="password" className="input" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} />
-          <div><a className="link link-hover">Forgot password?</a></div>
+           <label className="block">I am a</label>
+        <select value={role} onChange={(e) => setRole(e.target.value)} className="input">
+          <option value="freelancer">freelancer</option>
+          <option value="client">client</option>
+        </select>
           <button className="btn btn-success mt-4" onClick={handleRegister} disabled={loading}>{loading ? "loading" : "Register"}</button>
           <div className="divider">or</div>
           <button className="btn btn-neutral mt-2" disabled={loading}>
