@@ -2,18 +2,20 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
 import Alert from "../components/Alert";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const {login} = useAuth()
 
   const handleLogin = async(e) => {
     e.preventDefault();
-     
+      
     if (!email || !password) {
       setError('Please fill in all fields');
       return;
@@ -21,44 +23,51 @@ const Login = () => {
 
     setError("");
     setLoading(true);
-     const result = await login(email, password);
+    try {
+          const result = await login(email, password);
 
     if (!result.success) {
       setError(result.message);
     }
+          navigate("/dashboard");
 
-    setLoading(false);
+    } catch (err) {
+      console.log(err);
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-   <div className="absolute top-0 z-10 hero bg-base-200 h-screen">
-  <div className="hero-content flex-col flex md:flex-row gap-18">
-    <div className="text-center lg:text-left">
-      <h1 className="text-5xl font-bold text-success">Login now!</h1>
-      <p className="py-6 w-96">
-        Welcome to <span className="font-semibold text-success">GigConnect</span> — your gateway to connect with talented professionals and exciting opportunities. 
-  Sign in to explore, collaborate, and grow together.
-      </p>
-    </div>
-    <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-      <div className="card-body">
-        {error && <Alert alert={error} />}
-        <fieldset className="fieldset">
-          <label className="label">Email</label>
-          <input type="email" className="input" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)}/>
-          <label className="label">Password</label>
-          <input type="password" className="input" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} />
-          <div><a className="link link-hover">Forgot password?</a></div>
-          <button className="btn btn-success mt-4" onClick={handleLogin} disabled={loading}>{loading ? "loading" : "login"}</button>
-          <div className="divider">or</div>
-          <button className="btn btn-neutral mt-2" disabled={loading}>
-            <Link to="/register">Sign-Up</Link>
-          </button>
-        </fieldset>
+    <div className="hero absolute top-0 z-10 bg-base-200 min-h-screen p-4 flex items-center justify-center">
+      <div className="hero-content flex-col flex lg:flex-row gap-8 w-full max-w-6xl">
+        <div className="text-center lg:text-left lg:w-1/2">
+          <h1 className="text-5xl font-bold text-success">Login now!</h1>
+          <p className="py-6 lg:w-auto mx-auto max-w-lg">
+            Welcome to <span className="font-semibold text-success">GigConnect</span> — your gateway to connect with talented professionals and exciting opportunities. 
+            Sign in to explore, collaborate, and grow together.
+          </p>
+        </div>
+        <div className="card bg-base-100 w-full max-w-md shrink-0 shadow-2xl lg:w-1/2">
+          <div className="card-body">
+            {error && <Alert alert={error} />}
+            <fieldset className="fieldset">
+              <label className="label">Email</label>
+              <input type="email" className="input input-bordered w-full" placeholder="Email" value={email} onChange={(e)=>setEmail(e.target.value)}/>
+              <label className="label">Password</label>
+              <input type="password" className="input input-bordered w-full" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} />
+              <div><a className="link link-hover">Forgot password?</a></div>
+              <button className="btn btn-success mt-4 w-full" onClick={handleLogin} disabled={loading}>{loading ? "Loading..." : "Login"}</button>
+              <div className="divider">or</div>
+              <button className="btn btn-neutral mt-2 w-full" disabled={loading}>
+                <Link to="/register" className="w-full">Sign-Up</Link>
+              </button>
+            </fieldset>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
   );
 };
 export default Login;

@@ -1,14 +1,17 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FaSearch } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext"; 
 import Modal from "./Modal";
 
 const Navbar = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth(); 
+  const handleLogout = () => {
+      logout();
+  }
 
   return (
-    <header className="navbar bg-base-100 shadow-sm fixed absolute top-0 z-10">
+    <header className="navbar bg-base-100 shadow-sm fixed top-0 z-10">
       {/* Left: Dropdown Menu */}
       <div className="navbar-start">
         <div className="dropdown">
@@ -41,7 +44,17 @@ const Navbar = () => {
             <li><Link to="/messages">Message</Link></li>
             <li><Link to="/gigfeeds">Gigs</Link></li>
             <li><Link to="/about">About</Link></li>
+            
+            {/* Conditional Auth Links */}
             {!user && <li><Link to="/login">Login</Link></li>}
+            
+            {/* FIX APPLIED HERE: Show Dashboard and Logout when user is logged in */}
+            {user && <li><Link to="/dashboard">Dashboard</Link></li>}
+            {user && 
+                <li>
+                    <a onClick={handleLogout} className="text-error">Logout</a>
+                </li>
+            }
           </ul>
         </div>
       </div>
@@ -54,14 +67,15 @@ const Navbar = () => {
       </div>
 
       <div className="navbar-end">
-       
+        
         {user ? (
           <div className="flex items-center gap-2">
-             <button className="btn btn-neutral btn-circle mr-3">
-          <FaSearch size={20} />
-        </button>
+               <button className="btn btn-neutral btn-circle mr-3">
+            <FaSearch size={20} />
+          </button>
 
-           <Modal />
+            {/* Modal likely contains the profile button/avatar */}
+            <Modal /> 
           </div>
         ) : (
           <Link to="/login">

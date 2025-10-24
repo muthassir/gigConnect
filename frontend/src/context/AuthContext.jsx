@@ -11,12 +11,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  //API 
+  // API instance
   const API = axios.create({
     baseURL: "http://localhost:5000",
   });
 
-  //  API headers
+  // API headers function
   const setAuthHeader = (token) => {
     if (token) {
       API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -25,28 +25,43 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // check if user exists
+  // Check for stored token and user on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
     if (token && savedUser) {
       setAuthHeader(token);
-      setUser(JSON.parse(savedUser));
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error("Failed to parse stored user data:", e);
+        // Clear invalid storage if parsing fails
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      }
     }
     setLoading(false);
   }, []);
 
-  // login 
+  // Login function
   const login = async (email, password) => {
     try {
       setLoading(true);
       const response = await API.post("/api/auth/login", { email, password });
-      const { token } = response.data;
+      
+      // CRITICAL FIX: Destructure both token and the user object from the backend response.
+      const { token, user: userData } = response.data; 
+
+      if (!token || !userData) {
+          throw new Error("Server response did not contain token or user data.");
+      }
+
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("user", JSON.stringify(userData));
       setAuthHeader(token);
-      setUser(user);
-      return user;
+      setUser(userData); // Set state with the received user data
+
+      return { success: true, user: userData };
     } catch (error) {
       console.error("Login error:", error?.response?.data ?? error.message ?? error);
       const message =
@@ -54,13 +69,14 @@ export const AuthProvider = ({ children }) => {
         error?.response?.data ||
         error?.message ||
         "Login failed";
+      
       return { success: false, message };
     } finally {
       setLoading(false);
     }
   };
 
-  // register
+  // Register function
   const register = async (username, email, password, role) => {
     try {
       setLoading(true);
@@ -68,14 +84,22 @@ export const AuthProvider = ({ children }) => {
         username,
         email,
         password,
-        role
+        role,
       });
-      const { token } = response.data;
+
+      // CRITICAL FIX: Destructure both token and the user object from the backend response.
+      const { token, user: userData } = response.data;
+
+      if (!token || !userData) {
+          throw new Error("Server response did not contain token or user data.");
+      }
+      
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("user", JSON.stringify(userData));
       setAuthHeader(token);
-      setUser(user);
-      return { success: true, user };
+      setUser(userData); // Set state with the received user data
+
+      return { success: true, user: userData };
     } catch (error) {
       console.error("Register error:", error?.response?.data ?? error.message ?? error);
       const message =
@@ -83,13 +107,14 @@ export const AuthProvider = ({ children }) => {
         error?.response?.data ||
         error?.message ||
         "Registration failed";
+
       return { success: false, message };
     } finally {
       setLoading(false);
     }
   };
 
-  // logout
+  // Logout function
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -103,9 +128,8 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     loading,
+    API, 
   };
 
-  return <AuthContext.Provider value={value}>
-            {children}
-          </AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
