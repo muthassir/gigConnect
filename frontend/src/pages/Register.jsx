@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Alert from "../components/Alert";
 
 const Register = () => {
-    const [username, setUsername] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");

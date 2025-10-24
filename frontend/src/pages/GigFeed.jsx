@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { fetchGigs } from '../services/api';
 import GigCard from '../components/GigCard';
 import debounce from 'lodash.debounce';
+import Alert from '../components/Alert';
 
 export default function GigFeed() {
   const [gigs, setGigs] = useState([]);
@@ -66,10 +67,10 @@ export default function GigFeed() {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl mb-4">Main Gig Feed</h2>
+    <div className="h-screen p-8 flex flex-col items-center gap-6">
+      <h2 className="text-2xl mt-22">Main Gig Feed</h2>
 
-      <div className="mb-4 flex gap-3">
+      <div className="mt-8 flex gap-3">
         <input
           value={search}
           onChange={onSearchChange}
@@ -88,9 +89,9 @@ export default function GigFeed() {
       </div>
 
       {loading && <p>Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {error && <Alert alert={error} />}
 
-      {!loading && gigs.length === 0 && <p>No gigs found</p>}
+      {!loading && gigs.length === 0 && <p className='mt-4'>No gigs found</p>}
 
       <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
         {gigs.map(g => <GigCard key={g._id} gig={g} />)}

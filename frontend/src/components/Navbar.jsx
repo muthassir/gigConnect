@@ -38,8 +38,8 @@ const Navbar = () => {
           >
             <li><Link to="/">Home</Link></li>
             <li><Link to="/portfolio">Portfolio</Link></li>
-            <li><Link to="/message">Message</Link></li>
-            <li><Link to="/gigs">Gigs</Link></li>
+            <li><Link to="/messages">Message</Link></li>
+            <li><Link to="/gigfeeds">Gigs</Link></li>
             <li><Link to="/about">About</Link></li>
             {!user && <li><Link to="/login">Login</Link></li>}
           </ul>

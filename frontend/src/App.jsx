@@ -25,7 +25,7 @@ const App = () => {
             <Route path="/register" element={<Register />} />
 
             {/* Gig Feed and Messaging routes */}
-            <Route path="/GigFeed" element={<GigFeed />} />
+            <Route path="/gigfeeds" element={<GigFeed />} />
             <Route path="/messages" element={<Messages />} />
           </Routes>
           <Footer />

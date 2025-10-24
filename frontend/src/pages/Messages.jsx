@@ -19,8 +19,8 @@ export default function MessagesPage({ currentUser }) {
   }, []);
 
   return (
-    <div className="flex gap-4 h-[80vh]">
-      <div className="w-1/3">
+    <div className="flex flex-col h-screen justify-center items-center ">
+      <div className="mt-32">
         <ChatList chats={chats} onSelect={setActiveChat} />
       </div>
       <div className="flex-1">
