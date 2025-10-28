@@ -24,6 +24,8 @@ mongoose.connect(process.env.MONGO_URL, {
 
 app.use("/api/auth", require("./routes/authRoute.js"));
 app.use("/api/users", require("./routes/usersRoute.js"));
+app.use("/api/reviews", require("./routes/reviewRoute.js"));
+app.use("/api/payments", require("./routes/paymentRoute.js"));
 
 
 const server = http.createServer(app);
