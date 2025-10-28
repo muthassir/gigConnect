@@ -12,6 +12,7 @@ const getUserDataForResponse = (userDoc) => {
     return user;
 }
 
+// register 
 exports.register = async (req, res) => {
     const { username, email, password, role } = req.body;
 
@@ -37,6 +38,7 @@ exports.register = async (req, res) => {
     } 
 };
 
+// login
 exports.login = async (req, res) => {
     const { email, password } = req.body;
 
@@ -61,9 +63,10 @@ exports.login = async (req, res) => {
     }
 };
 
+// get user
 exports.getUser = async (req, res) => { 
     try {
-        const user = await User.findById(req.user.userId).select('-password'); 
+        const user = await User.findById(req.userId).select('-password'); 
         
         if (!user) {
             return res.status(404).json({ message: 'User not found' });

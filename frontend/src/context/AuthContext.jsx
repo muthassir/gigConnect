@@ -1,5 +1,6 @@
 import { useContext, createContext, useState, useEffect } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
 
@@ -10,6 +11,8 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const navigate = useNavigate()
 
   // API instance
   const API = axios.create({
@@ -25,7 +28,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Check for stored token and user on mount
+  // Check for stored token and user
   useEffect(() => {
     const token = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
@@ -35,7 +38,6 @@ export const AuthProvider = ({ children }) => {
         setUser(JSON.parse(savedUser));
       } catch (e) {
         console.error("Failed to parse stored user data:", e);
-        // Clear invalid storage if parsing fails
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
@@ -49,7 +51,6 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       const response = await API.post("/api/auth/login", { email, password });
       
-      // CRITICAL FIX: Destructure both token and the user object from the backend response.
       const { token, user: userData } = response.data; 
 
       if (!token || !userData) {
@@ -59,7 +60,13 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
       setAuthHeader(token);
-      setUser(userData); // Set state with the received user data
+      setUser(userData); 
+      
+      if (userData.role === 'client') {
+      navigate('/client/dashboard');
+    } else {
+      navigate('/freelancer/dashboard');
+    }
 
       return { success: true, user: userData };
     } catch (error) {
@@ -87,7 +94,6 @@ export const AuthProvider = ({ children }) => {
         role,
       });
 
-      // CRITICAL FIX: Destructure both token and the user object from the backend response.
       const { token, user: userData } = response.data;
 
       if (!token || !userData) {
@@ -97,7 +103,15 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
       setAuthHeader(token);
-      setUser(userData); // Set state with the received user data
+      setUser(userData)
+
+      if(userData.role === "client"){
+        navigate("/client/dashboard")
+      }else{
+        navigate("/client/dashboard")
+      }
+           
+
 
       return { success: true, user: userData };
     } catch (error) {

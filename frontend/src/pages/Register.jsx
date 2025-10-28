@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import {  Link } from "react-router-dom";
 import Alert from "../components/Alert";
 
 const Register = () => {
@@ -12,7 +12,6 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   console.log(role);
   
-  const navigate = useNavigate();
 
   const {register} = useAuth()
 
@@ -34,8 +33,6 @@ const Register = () => {
         setError(result.message);
         return;
       }
-
-      navigate("/dashboard");
     } catch (err) {
       console.log(err);
       setError("Something went wrong. Please try again.");

@@ -1,6 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const helmet = require("helmet");
 const dotenv = require("dotenv");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -9,11 +10,28 @@ dotenv.config();
 
 const app = express();
 
+// Helmet security middleware
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: ["'self'", "ws:", "wss:", "blob:"],
+      frameSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
 
+// db connection
 mongoose.connect(process.env.MONGO_URL, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -21,16 +39,18 @@ mongoose.connect(process.env.MONGO_URL, {
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log(err));
 
-
+// routes
 app.use("/api/auth", require("./routes/authRoute.js"));
 app.use("/api/users", require("./routes/usersRoute.js"));
 app.use("/api/reviews", require("./routes/reviewRoute.js"));
 app.use("/api/payments", require("./routes/paymentRoute.js"));
+app.use("/api/messages", require("./routes/messageRoutes.js"));
+
 
 
 const server = http.createServer(app);
 
-
+// Socket.io
 const io = new Server(server, {
   cors: { origin: "*" }, 
 });

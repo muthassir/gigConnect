@@ -11,7 +11,7 @@ const {
     updateApplicationStatus,
     getMyApplications,
     updateGigStatus
-} = require('../controllers/gigController')
+} = require('../controllers/gigController.js')
 const auth = require('../middleware/authMiddleware.js');
 
 const router = express.Router();

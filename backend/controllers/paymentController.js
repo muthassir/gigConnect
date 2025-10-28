@@ -1,5 +1,5 @@
-const  User = require('../models/User');
-const Payment = require('../models/Payment');
+const  User = require('../models/User.js');
+const Payment = require('../models/Payment.js');
 
 exports.processPayment = async (req, res) => {  
     const { amount, method, transactionId } = req.body;
@@ -17,6 +17,7 @@ exports.processPayment = async (req, res) => {
         res.status(500).json({ message: 'Server error while processing payment' });
     }
 };
+
 exports.getPayments = async (req, res) => {
     try {
         const payments = await Payment.find().sort({ createdAt: -1 });

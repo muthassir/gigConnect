@@ -1,15 +1,14 @@
-import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"; 
 import Navbar from "./components/Navbar"; 
 import Footer from "./components/Footer"; 
-import Dashboard from "./components/Dashboard"; 
+import Dashboard from "./pages/Dashboard"; 
 import Login from "./pages/Login"; 
 import Register from "./pages/Register"; 
 import GigFeed from "./pages/GigFeed"; 
 import Messages from "./pages/Messages"; 
 import { AuthProvider, useAuth } from "./context/AuthContext"; 
 
-// route protection component
+// protected route
 const ProtectedRoute = ({ element }) => {
   const { user } = useAuth();
   
@@ -31,7 +30,7 @@ const App = () => {
               {/* Default route */}
               <Route path="/" element={<Dashboard />} />
 
-              {/* Auth routes protected by ProtectedRoute */}
+              {/* ProtectedRoute */}
               <Route 
                 path="/login" 
                 element={<ProtectedRoute element={<Login />} />} 
@@ -43,6 +42,8 @@ const App = () => {
 
               {/* General Routes */}
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/client/dashboard" element={<Dashboard />} />
+              <Route path="/freelancer/dashboard" element={<Dashboard />} />
               <Route path="/gigfeeds" element={<GigFeed />} />
               <Route path="/messages" element={<Messages />} />
             </Routes>
