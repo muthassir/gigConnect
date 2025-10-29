@@ -40,7 +40,7 @@ exports.createGig = async(req, res)=>{
             client: req.userId
         });
 
-        await gig.populate('client', 'name email avatar');
+        await gig.populate('client', 'username email avatar');
 
         res.status(201).json({
             success: true,
@@ -62,8 +62,8 @@ exports.getGigs = async(req, res)=>{
         const { page = 1, limit = 10, status = 'open' } = req.query;
         
         const gigs = await Gig.find({ status })
-            .populate('client', 'name email avatar')
-            .populate('hiredFreelancer', 'name email avatar')
+            .populate('client', 'username email avatar')
+            .populate('hiredFreelancer', 'username email avatar')
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .sort({ createdAt: -1 });
@@ -92,9 +92,9 @@ exports.getGigs = async(req, res)=>{
 exports.getGig = async(req, res)=>{
     try {
         const gig = await Gig.findById(req.params.id)
-            .populate('client', 'name email avatar phone')
-            .populate('hiredFreelancer', 'name email avatar skills')
-            .populate('applications.freelancer', 'name email avatar skills bio');
+            .populate('client', 'username email avatar phone')
+            .populate('hiredFreelancer', 'username email avatar skills')
+            .populate('applications.freelancer', 'username email avatar skills bio');
 
         if (!gig) {
             return res.status(404).json({
@@ -140,8 +140,8 @@ exports.updateGig = async(req, res)=>{
             req.body,
             { new: true, runValidators: true }
         )
-        .populate('client', 'name email avatar')
-        .populate('hiredFreelancer', 'name email avatar');
+        .populate('client', 'username email avatar')
+        .populate('hiredFreelancer', 'username email avatar');
 
         res.json({
             success: true,
@@ -203,9 +203,9 @@ exports.getMyGigs = async(req, res)=>{
             });
         }
 
-        const gigs = await Gig.find({ client: req.userId })
-            .populate('client', 'name email avatar')
-            .populate('hiredFreelancer', 'name email avatar')
+        const gigs = await Gig.find({ client: user })
+            .populate('client', 'username email avatar')
+            .populate('hiredFreelancer', 'username email avatar')
             .sort({ createdAt: -1 });
 
         res.json({
@@ -238,7 +238,7 @@ exports.searchGigs = async(req, res)=>{
         
         let query = { status: 'open' };
         
-        // Text search in title and description
+        // title and description search
         if (search) {
             query.$or = [
                 { title: { $regex: search, $options: 'i' } },
@@ -275,8 +275,8 @@ exports.searchGigs = async(req, res)=>{
         }
 
         const gigs = await Gig.find(query)
-            .populate('client', 'name email avatar')
-            .populate('hiredFreelancer', 'name email avatar')
+            .populate('client', 'username email avatar')
+            .populate('hiredFreelancer', 'username email avatar')
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .sort({ createdAt: -1 });
@@ -360,7 +360,7 @@ exports.applyToGig = async(req, res)=>{
         });
 
         await gig.save();
-        await gig.populate('applications.freelancer', 'name email avatar skills bio');
+        await gig.populate('applications.freelancer', 'username email avatar skills bio');
 
         res.json({
             success: true,
@@ -423,8 +423,8 @@ exports.updateApplicationStatus = async(req, res)=>{
         }
 
         await gig.save();
-        await gig.populate('applications.freelancer', 'name email avatar skills bio');
-        await gig.populate('hiredFreelancer', 'name email avatar skills');
+        await gig.populate('applications.freelancer', 'username email avatar skills bio');
+        await gig.populate('hiredFreelancer', 'username email avatar skills');
 
         res.json({
             success: true,
@@ -455,8 +455,8 @@ exports.getMyApplications = async(req, res)=>{
         const gigs = await Gig.find({
             'applications.freelancer': req.userId
         })
-        .populate('client', 'name email avatar')
-        .populate('hiredFreelancer', 'name email avatar')
+        .populate('client', 'username email avatar')
+        .populate('hiredFreelancer', 'username email avatar')
         .sort({ createdAt: -1 });
 
         // Filter to only include applications from this freelancer
@@ -512,8 +512,8 @@ exports.updateGigStatus = async(req, res)=>{
         gig.status = status;
         await gig.save();
 
-        await gig.populate('client', 'name email avatar');
-        await gig.populate('hiredFreelancer', 'name email avatar skills');
+        await gig.populate('client', 'username email avatar');
+        await gig.populate('hiredFreelancer', 'username email avatar skills');
 
         res.json({
             success: true,

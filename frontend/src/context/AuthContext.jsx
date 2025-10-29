@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
 
   const navigate = useNavigate()
 
-  // API instance
+  // API
   const API = axios.create({
     baseURL: "http://localhost:5000",
   });

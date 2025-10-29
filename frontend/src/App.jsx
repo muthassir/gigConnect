@@ -4,8 +4,12 @@ import Footer from "./components/Footer";
 import Dashboard from "./pages/Dashboard"; 
 import Login from "./pages/Login"; 
 import Register from "./pages/Register"; 
-import GigFeed from "./pages/GigFeed"; 
-import Messages from "./pages/Messages"; 
+import Messages from "./pages/Messages";
+import GigFeed from "./pages/GigFeed";
+import GigDetails from "./components/gigs/GigDetails"; 
+import CreateGig from "./components/gigs/CreateGig"; 
+import MyGigs from "./components/gigs/MyGigs";
+import MyApplications from "./components/gigs/MyApplications";
 import { AuthProvider, useAuth } from "./context/AuthContext"; 
 
 // protected route
@@ -27,10 +31,9 @@ const App = () => {
           <Navbar />
           <div className="pt-16 min-h-screen"> 
             <Routes>
-              {/* Default route */}
               <Route path="/" element={<Dashboard />} />
 
-              {/* ProtectedRoute */}
+              {/* protected route */}
               <Route 
                 path="/login" 
                 element={<ProtectedRoute element={<Login />} />} 
@@ -40,12 +43,18 @@ const App = () => {
                 element={<ProtectedRoute element={<Register />} />} 
               />
 
-              {/* General Routes */}
+              {/* general routes */}
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/client/dashboard" element={<Dashboard />} />
               <Route path="/freelancer/dashboard" element={<Dashboard />} />
-              <Route path="/gigfeeds" element={<GigFeed />} />
               <Route path="/messages" element={<Messages />} />
+
+              <Route path="/gigfeeds" element={<GigFeed />} />
+              <Route path="/gigs/:id" element={<GigDetails />} />
+              <Route path="/gigs/:id/apply" element={<GigDetails />} />
+              <Route path="/create-gig" element={<CreateGig />} />
+              <Route path="/client/my-gigs" element={<MyGigs />} />
+              <Route path="/freelancer/my-applications" element={<MyApplications />} />
             </Routes>
           </div>
           <Footer />

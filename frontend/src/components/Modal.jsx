@@ -20,6 +20,7 @@ const Modal = () => {
 
   return (
     <>
+    {/* open modal btn */}
       <button
         className="btn btn-neutral h-11 w-11 circle rounded-full mr-6"
         onClick={openModal}
@@ -30,7 +31,6 @@ const Modal = () => {
       <dialog ref={modalRef} id="my_modal_1" className="modal">
         <div className="modal-box">
           <h3 className="font-bold text-lg">
-            {/* Display username and role, or a default message */}
             {user 
                 ? `Profile: ${user.username} (${user.role.toUpperCase()})` 
                 : "Profile"}
@@ -42,7 +42,6 @@ const Modal = () => {
           </p>
 
           <div className="flex justify-between items-center modal-action mt-0 pt-0">
-            {/* Show Logout button only if a user is logged in */}
             {user && (
                 <button
                     onClick={handleLogout}

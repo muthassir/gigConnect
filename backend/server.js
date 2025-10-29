@@ -27,7 +27,12 @@ app.use(helmet({
 }));
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 app.use(express.json());
 
 
@@ -42,6 +47,7 @@ mongoose.connect(process.env.MONGO_URL, {
 // routes
 app.use("/api/auth", require("./routes/authRoute.js"));
 app.use("/api/users", require("./routes/usersRoute.js"));
+app.use("/api/gigs", require("./routes/gigRoutes.js"))
 app.use("/api/reviews", require("./routes/reviewRoute.js"));
 app.use("/api/payments", require("./routes/paymentRoute.js"));
 app.use("/api/messages", require("./routes/messageRoutes.js"));
@@ -52,7 +58,11 @@ const server = http.createServer(app);
 
 // Socket.io
 const io = new Server(server, {
-  cors: { origin: "*" }, 
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST"]
+  }
 });
 
 io.on("connection", (socket) => {
@@ -69,9 +79,7 @@ io.on("connection", (socket) => {
 
  
   socket.on("message", (msg) => {
-    io.to(msg.room).emit("message", msg);
-
-   
+    io.to(msg.room).emit("message", msg)
   });
 
   socket.on("disconnect", () => {

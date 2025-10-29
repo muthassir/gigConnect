@@ -16,7 +16,6 @@ const gigSchema = new mongoose.Schema({
   },
   budget: {
     type: Number,
-    
     required: true,
     min: 0,
   },
@@ -67,6 +66,6 @@ const gigSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-});
+}, );
 
 module.exports = mongoose.model("Gig", gigSchema);

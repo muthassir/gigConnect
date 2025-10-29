@@ -1,18 +1,18 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FaSearch } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext"; 
+import { useAuth } from "../context/AuthContext";
 import Modal from "./Modal";
 
 const Navbar = () => {
-  const { user, logout } = useAuth(); 
+  const { user, logout } = useAuth();
   const handleLogout = () => {
-      logout();
-  }
+    logout();
+  };
 
   return (
     <header className="navbar bg-base-100 shadow-sm fixed top-0 z-10">
-      {/* Left: Dropdown Menu */}
+      {/* start */}
+      {/* Dropdown Menu */}
       <div className="navbar-start">
         <div className="dropdown">
           <div
@@ -39,49 +39,58 @@ const Navbar = () => {
             tabIndex={0}
             className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
           >
-            <li><Link to="/">Home</Link></li>
-            <li><Link to="/portfolio">Portfolio</Link></li>
-            <li><Link to="/messages">Message</Link></li>
-            <li><Link to="/gigfeeds">Gigs</Link></li>
-            <li><Link to="/about">About</Link></li>
-            
-            {/* Conditional Auth Links */}
-            {!user && <li><Link to="/login">Login</Link></li>}
-            
-            {/* FIX APPLIED HERE: Show Dashboard and Logout when user is logged in */}
-            {user && <li><Link to="/dashboard">Dashboard</Link></li>}
-            {user && 
-                <li>
-                    <a onClick={handleLogout} className="text-error">Logout</a>
-                </li>
-            }
+            <li>
+              <Link to="/">Home</Link>
+            </li>
+            <li>
+              <Link to="/portfolio">Portfolio</Link>
+            </li>
+            <li>
+              <Link to="/messages">Message</Link>
+            </li>
+            <li>
+              <Link to="/gigfeeds">Gigs</Link>
+            </li>
+            <li>
+              <Link to="/about">About</Link>
+            </li>
+
+            {/*  Auth Links */}
+            {!user && (
+              <li>
+                <Link to="/login">Login</Link>
+              </li>
+            )}
+            {user && (
+              <li>
+                <Link to="/dashboard">Dashboard</Link>
+              </li>
+            )}
+            {user && (
+              <li>
+                <a onClick={handleLogout} className="text-error">
+                  Logout
+                </a>
+              </li>
+            )}
           </ul>
         </div>
       </div>
 
-      {/* Center: Brand Name */}
+      {/* Center */}
       <div className="navbar-center">
         <Link to="/" className="btn btn-ghost text-xl text-success">
           <p>GigConnect</p>
         </Link>
       </div>
 
+      {/* end */}
       <div className="navbar-end">
-        
         {user ? (
-          <div className="flex items-center gap-2">
-               <button className="btn btn-neutral btn-circle mr-3">
-            <FaSearch size={20} />
-          </button>
-
-            {/* Modal likely contains the profile button/avatar */}
-            <Modal /> 
-          </div>
+          <Modal />
         ) : (
           <Link to="/login">
-            <button className="btn btn-success rounded mr-6">
-              Sign In
-            </button>
+            <button className="btn btn-success rounded mr-6">Sign In</button>
           </Link>
         )}
       </div>
