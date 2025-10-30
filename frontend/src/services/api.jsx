@@ -77,4 +77,75 @@ export const deleteGig = async (gigId) => {
   return response.data;
 };
 
+// Profile API calls
+export const getProfile = async () => {
+  const response = await API.get('/users/profiles');
+  return response.data;
+};
+
+export const updateProfile = async (profileData) => {
+  const response = await API.put('/users/profiles', profileData);
+  return response.data;
+};
+
+// Message API calls
+export const getMyConversations = async () => {
+  const response = await API.get('/messages/conversations');
+  return response.data;
+};
+
+export const getMessages = async (conversationId) => {
+  const response = await API.get(`/messages/conversations/${conversationId}`);
+  return response.data;
+};
+
+export const sendMessage = async (messageData) => {
+  const response = await API.post('/messages', messageData);
+  return response.data;
+};
+
+export const startConversation = async (receiverId, gigId = null) => {
+  const response = await API.post('/messages/conversations/start', { 
+    receiverId, 
+    gigId 
+  });
+  return response.data;
+};
+
+// Payment API calls
+export const createPaymentIntent = async (paymentData) => {
+  const response = await API.post('/payments/create-intent', paymentData);
+  return response.data;
+};
+
+export const confirmPayment = async (confirmationData) => {
+  const response = await API.post('/payments/confirm', confirmationData);
+  return response.data;
+};
+
+export const getClientPayments = async () => {
+  const response = await API.get('/payments/client/my-payments');
+  return response.data;
+};
+
+export const getFreelancerPayments = async () => {
+  const response = await API.get('/payments/freelancer/my-payments');
+  return response.data;
+};
+
+export const getPaymentDetails = async (paymentId) => {
+  const response = await API.get(`/payments/${paymentId}`);
+  return response.data;
+};
+
+export const requestPaymentRelease = async (paymentId) => {
+  const response = await API.post(`/payments/${paymentId}/request-release`);
+  return response.data;
+};
+
+export const releasePayment = async (paymentId) => {
+  const response = await API.post(`/payments/${paymentId}/release`);
+  return response.data;
+};
+
 export default API;

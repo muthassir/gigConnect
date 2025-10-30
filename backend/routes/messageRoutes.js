@@ -1,12 +1,23 @@
 const express = require('express');
-const { sendMessage, getMessages, getConversation, deleteMessage } = require('../controllers/messageController');
-const auth = require('../middleware/authMiddleware');
+const { 
+  getMyConversations, 
+  getConversationMessages, 
+  sendMessage, 
+  startConversation,
+  markAsRead 
+} = require('../controllers/messageController.js');
+const auth = require('../middleware/authMiddleware.js');
 
 const router = express.Router();
 
+router.get('/conversations', auth, getMyConversations);
+
+router.get('/conversations/:conversationId', auth, getConversationMessages);
+
+router.post('/conversations/start', auth, startConversation);
+
 router.post('/', auth, sendMessage);
-router.get('/', auth, getMessages);
-router.get('/conversation/:withUserId', auth, getConversation);
-router.delete('/:messageId', auth, deleteMessage);
+
+router.put('/conversations/:conversationId/read', auth, markAsRead);
 
 module.exports = router;

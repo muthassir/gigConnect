@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { FaUser } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const Modal = () => {
   const modalRef = useRef();
@@ -16,6 +16,10 @@ const Modal = () => {
     logout(); 
     modalRef.current.close(); 
     navigate("/login"); 
+  };
+   const handleProfile = () => {
+    modalRef.current.close(); 
+    navigate("/profile"); 
   };
 
   return (
@@ -40,6 +44,10 @@ const Modal = () => {
                 ? `You are signed in as a ${user.role}.` 
                 : "Please log in to view your profile."}
           </p>
+
+          <Link to="/profile" className="border-b-2 border-success pb-2 mb-4 inline-block" onClick={handleProfile} >
+       View Profile
+          </Link>
 
           <div className="flex justify-between items-center modal-action mt-0 pt-0">
             {user && (

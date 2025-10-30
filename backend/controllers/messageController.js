@@ -1,74 +1,194 @@
-const User = require('../models/User');
-const Message = require('../models/Message');
+const { Message, Conversation } = require("../models/Message.js");
+const User = require("../models/User.js");
 
-exports.sendMessage = async (req, res) => { 
-    const { recipientId, content } = req.body;
-    const senderId = req.user.id;   
-    try {
-        const sender = await User.findById(senderId);
-        const recipient = await User.findById(recipientId);
-        if (!sender || !recipient) {
-            return res.status(404).json({ message: 'Sender or recipient not found' });
-        }
-        const newMessage = new Message({
-            sender: senderId,
-            recipient: recipientId,
-            content
-        });
-        await newMessage.save();
-        res.status(201).json({ message: 'Message sent successfully', messageData: newMessage });
-    } catch (error) {
-        console.error('Error sending message:', error);
-        res.status(500).json({ message: 'Server error while sending message' });
-    }
-};
-exports.getMessages = async (req, res) => {
-    const userId = req.user.id;
-    try {
-        const messages = await Message.find({
-            $or: [{ sender: userId }, { recipient: userId }]
-        }).sort({ createdAt: -1 });
-        res.status(200).json({ messages });
-    } catch (error) {
-        console.error('Error fetching messages:', error);
-        res.status(500).json({ message: 'Server error while fetching messages' });
-    }
+// Get all conversations for current user
+exports.getMyConversations = async (req, res) => {
+  try {
+    const conversations = await Conversation.find({
+      participants: req.userId
+    })
+    .populate('participants', 'username avatar role')
+    .populate('gig', 'title')
+    .populate('lastMessage')
+    .sort({ updatedAt: -1 });
+
+    res.json({
+      success: true,
+      data: conversations
+    });
+  } catch (error) {
+    console.error('Get conversations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
 };
 
-exports.getConversation = async (req, res) => {
-    const userId = req.user.id;
-    const { withUserId } = req.params;
-    try {
-        const messages = await Message.find({
-            $or: [  
-                { sender: userId, recipient: withUserId },
-                { sender: withUserId, recipient: userId }
-            ]
-        }).sort({ createdAt: 1 }); 
-        res.status(200).json({ messages });
+// Get messages for a specific conversation
+exports.getConversationMessages = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+
+    // Check if user is part of the conversation
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      participants: req.userId
+    });
+
+    if (!conversation) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to view this conversation'
+      });
     }
-    catch (error) {
-        console.error('Error fetching conversation:', error);
-        res.status(500).json({ message: 'Server error while fetching conversation' });
-    }
+
+    const messages = await Message.find({ conversation: conversationId })
+      .populate('sender', 'username avatar')
+      .sort({ createdAt: 1 });
+
+    res.json({
+      success: true,
+      data: messages
+    });
+  } catch (error) {
+    console.error('Get messages error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
 };
 
-exports.deleteMessage = async (req, res) => {
-    const userId = req.user.id;
-    const { messageId } = req.params;
-    try {
-        const message = await Message.findById(messageId);
-        if (!message) {
-            return res.status(404).json({ message: 'Message not found' });
-        }
-        if (message.sender.toString() !== userId) {
-            return res.status(403).json({ message: 'Unauthorized to delete this message' });
-        }
-        await message.remove();
-        res.status(200).json({ message: 'Message deleted successfully' });
-    } catch (error) {
-        console.error('Error deleting message:', error);
-        res.status(500).json({ message: 'Server error while deleting message' });
+// Start a new conversation
+exports.startConversation = async (req, res) => {
+  try {
+    const { receiverId, gigId } = req.body;
+
+    if (!receiverId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Receiver ID is required'
+      });
     }
+
+    // Check if conversation already exists
+    let conversation = await Conversation.findOne({
+      participants: { $all: [req.userId, receiverId] },
+      ...(gigId && { gig: gigId })
+    })
+    .populate('participants', 'username avatar role')
+    .populate('gig', 'title')
+    .populate('lastMessage');
+
+    if (!conversation) {
+      // Create new conversation
+      conversation = new Conversation({
+        participants: [req.userId, receiverId],
+        ...(gigId && { gig: gigId })
+      });
+
+      await conversation.save();
+      await conversation.populate('participants', 'username avatar role');
+      if (gigId) {
+        await conversation.populate('gig', 'title');
+      }
+    }
+
+    res.json({
+      success: true,
+      data: conversation
+    });
+  } catch (error) {
+    console.error('Start conversation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
 };
 
+// Send a message
+exports.sendMessage = async (req, res) => {
+  try {
+    const { conversationId, content, receiverId } = req.body;
+
+    if (!content || !conversationId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Content and conversation ID are required'
+      });
+    }
+
+    // Check if user is part of the conversation
+    const conversation = await Conversation.findOne({
+      _id: conversationId,
+      participants: req.userId
+    });
+
+    if (!conversation) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to send message in this conversation'
+      });
+    }
+
+    // Create new message
+    const message = new Message({
+      conversation: conversationId,
+      sender: req.userId,
+      content: content.trim()
+    });
+
+    await message.save();
+    await message.populate('sender', 'username avatar');
+
+    // Update conversation's last message
+    conversation.lastMessage = message._id;
+    await conversation.save();
+
+    res.json({
+      success: true,
+      data: message,
+      message: 'Message sent successfully'
+    });
+  } catch (error) {
+    console.error('Send message error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
+
+// Mark messages as read
+exports.markAsRead = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+
+    await Message.updateMany(
+      {
+        conversation: conversationId,
+        sender: { $ne: req.userId },
+        read: false
+      },
+      { read: true }
+    );
+
+    res.json({
+      success: true,
+      message: 'Messages marked as read'
+    });
+  } catch (error) {
+    console.error('Mark as read error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};

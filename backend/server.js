@@ -62,7 +62,8 @@ const io = new Server(server, {
     origin: "http://localhost:5173",
     credentials: true,
     methods: ["GET", "POST"]
-  }
+  },
+  transports: ['websocket', 'polling'] 
 });
 
 io.on("connection", (socket) => {
@@ -77,16 +78,17 @@ io.on("connection", (socket) => {
     socket.leave(room);
   });
 
- 
   socket.on("message", (msg) => {
-    io.to(msg.room).emit("message", msg)
+    io.to(msg.room).emit("message", {
+      ...msg,
+      createdAt: new Date().toISOString()
+    });
   });
 
-  socket.on("disconnect", () => {
-    console.log("socket disconnected", socket.id);
+  socket.on("disconnect", (reason) => {
+    console.log("socket disconnected", socket.id, "reason:", reason);
   });
 });
-
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server started at port ${PORT}`));

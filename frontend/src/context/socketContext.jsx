@@ -8,22 +8,53 @@ export const SocketProvider = ({ children }) => {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    socketRef.current = io("http://localhost:5000", {
-      transports: ["websocket"],
-    });
+    // Only create socket if it doesn't exist
+    if (!socketRef.current) {
+      socketRef.current = io("http://localhost:5000", {
+        transports: ["websocket", "polling"], // Add polling as fallback
+        withCredentials: true,
+        autoConnect: true,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000,
+      });
 
-    socketRef.current.on("connect", () => {
-      console.log("✅ Connected to socket server");
-      setConnected(true);
-    });
+      socketRef.current.on("connect", () => {
+        console.log("✅ Connected to socket server", socketRef.current.id);
+        setConnected(true);
+      });
 
-    socketRef.current.on("disconnect", () => {
-      console.log("❌ Disconnected from socket server");
-      setConnected(false);
-    });
+      socketRef.current.on("disconnect", (reason) => {
+        console.log("❌ Disconnected from socket server", reason);
+        setConnected(false);
+      });
+
+      socketRef.current.on("connect_error", (error) => {
+        console.log("❌ Socket connection error:", error.message);
+        setConnected(false);
+      });
+
+      socketRef.current.on("reconnect", (attempt) => {
+        console.log("🔄 Reconnected to socket server, attempt:", attempt);
+        setConnected(true);
+      });
+
+      socketRef.current.on("reconnect_attempt", (attempt) => {
+        console.log("🔄 Attempting to reconnect:", attempt);
+      });
+
+      socketRef.current.on("reconnect_error", (error) => {
+        console.log("❌ Reconnection error:", error);
+      });
+
+      socketRef.current.on("reconnect_failed", () => {
+        console.log("❌ Reconnection failed");
+      });
+    }
 
     return () => {
-      socketRef.current.disconnect();
+      // Don't disconnect on cleanup, let it manage reconnections
+      // socketRef.current?.disconnect();
     };
   }, []);
 
@@ -34,5 +65,10 @@ export const SocketProvider = ({ children }) => {
   );
 };
 
-export const useSocket = () => useContext(SocketContext);
-
+export const useSocket = () => {
+  const context = useContext(SocketContext);
+  if (!context) {
+    throw new Error("useSocket must be used within a SocketProvider");
+  }
+  return context;
+};

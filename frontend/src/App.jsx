@@ -11,6 +11,11 @@ import CreateGig from "./components/gigs/CreateGig";
 import MyGigs from "./components/gigs/MyGigs";
 import MyApplications from "./components/gigs/MyApplications";
 import { AuthProvider, useAuth } from "./context/AuthContext"; 
+import Profile from "./components/Profile";
+import { SocketProvider } from "./context/socketContext";
+import ClientPayments from "./pages/ClientPayments";
+import FreelancerPayments from "./pages/FreelancerPayments";
+import PaymentPage from "./pages/PaymentPage";
 
 // protected route
 const ProtectedRoute = ({ element }) => {
@@ -27,6 +32,7 @@ const App = () => {
   return (
     <div>
       <Router>
+        <SocketProvider>
         <AuthProvider>
           <Navbar />
           <div className="pt-16 min-h-screen"> 
@@ -55,10 +61,17 @@ const App = () => {
               <Route path="/create-gig" element={<CreateGig />} />
               <Route path="/client/my-gigs" element={<MyGigs />} />
               <Route path="/freelancer/my-applications" element={<MyApplications />} />
+              <Route path="/profile" element={<Profile />} />
+
+              {/* payments */}
+              <Route path="/client/payments" element={<ClientPayments />} />
+              <Route path="/freelancer/earnings" element={<FreelancerPayments />} />
+              <Route path="/gigs/:id/payment" element={<PaymentPage />} />
             </Routes>
           </div>
           <Footer />
         </AuthProvider>
+        </SocketProvider>
       </Router>
     </div>
   );
