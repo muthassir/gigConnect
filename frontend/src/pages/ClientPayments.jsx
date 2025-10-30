@@ -32,7 +32,8 @@ function ClientPayments() {
       'pending': { class: 'badge-warning', text: 'Pending' },
       'processing': { class: 'badge-info', text: 'Processing' },
       'failed': { class: 'badge-error', text: 'Failed' },
-      'refunded': { class: 'badge-neutral', text: 'Refunded' }
+      'cancelled': { class: 'badge-neutral', text: 'Cancelled' },
+      'refunded': { class: 'badge-secondary', text: 'Refunded' }
     };
     const config = statusConfig[status] || { class: 'badge-neutral', text: status };
     return <span className={`badge ${config.class}`}>{config.text}</span>;
@@ -42,6 +43,10 @@ function ClientPayments() {
     return payments
       .filter(p => p.status === 'completed')
       .reduce((total, payment) => total + payment.amount, 0);
+  };
+
+  const getCompletedPayments = () => {
+    return payments.filter(p => p.status === 'completed').length;
   };
 
   if (user?.role !== 'client') {
@@ -81,9 +86,7 @@ function ClientPayments() {
         </div>
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body text-center">
-            <div className="text-3xl font-bold text-info">
-              {payments.filter(p => p.status === 'completed').length}
-            </div>
+            <div className="text-3xl font-bold text-info">{getCompletedPayments()}</div>
             <div className="text-gray-600">Completed</div>
           </div>
         </div>
@@ -96,7 +99,7 @@ function ClientPayments() {
       ) : payments.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-2xl text-gray-500 mb-4">No payments yet</div>
-          <p className="text-gray-600">Your payment history will appear here</p>
+          <p className="text-gray-600">Your payment history will appear here after you make payments</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -106,11 +109,11 @@ function ClientPayments() {
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
-                      <h3 className="card-title text-xl">{payment.gig?.title}</h3>
+                      <h3 className="card-title text-xl">{payment.gig?.title || 'Gig'}</h3>
                       <div className="flex items-center gap-2">
                         {getStatusBadge(payment.status)}
                         <span className="text-xl font-bold text-success">
-                          ${payment.amount}
+                          ${payment.amount?.toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -127,7 +130,7 @@ function ClientPayments() {
                             </div>
                           </div>
                           <div>
-                            <div className="font-semibold">{payment.freelancer?.username}</div>
+                            <div className="font-semibold">{payment.freelancer?.username || 'Freelancer'}</div>
                             <div className="text-sm text-gray-600">Freelancer</div>
                           </div>
                         </div>
@@ -136,15 +139,15 @@ function ClientPayments() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="font-medium">Platform Fee:</span>
-                          <span>${payment.platformFee?.toFixed(2)}</span>
+                          <span>${payment.platformFee?.toFixed(2) || '0.00'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium">Freelancer Received:</span>
-                          <span className="text-success">${payment.freelancerEarnings?.toFixed(2)}</span>
+                          <span className="text-success">${payment.freelancerEarnings?.toFixed(2) || '0.00'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium">Payment Method:</span>
-                          <span className="capitalize">{payment.paymentMethod}</span>
+                          <span className="capitalize">{payment.paymentMethod || 'card'}</span>
                         </div>
                       </div>
                     </div>
@@ -167,7 +170,9 @@ function ClientPayments() {
                       {payment.transactionId && (
                         <div>
                           <span className="font-medium">Transaction ID:</span>{' '}
-                          <code className="text-xs">{payment.transactionId}</code>
+                          <code className="text-xs bg-base-200 px-2 py-1 rounded">
+                            {payment.transactionId}
+                          </code>
                         </div>
                       )}
                     </div>

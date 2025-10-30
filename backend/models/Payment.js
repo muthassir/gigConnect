@@ -44,20 +44,9 @@ const paymentSchema = new mongoose.Schema({
     type: String,
     default: 'card'
   },
-  releaseRequested: {
-    type: Boolean,
-    default: false
-  },
-  releaseRequestedAt: Date,
   completedAt: Date
 }, {
   timestamps: true
 });
-
-// Index for better query performance
-paymentSchema.index({ client: 1, createdAt: -1 });
-paymentSchema.index({ freelancer: 1, createdAt: -1 });
-paymentSchema.index({ gig: 1 });
-paymentSchema.index({ stripePaymentIntentId: 1 });
 
 module.exports = mongoose.model('Payment', paymentSchema);

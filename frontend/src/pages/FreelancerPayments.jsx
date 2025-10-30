@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getFreelancerPayments, requestPaymentRelease } from "../services/api";
+import { getFreelancerPayments } from "../services/api";
 import Alert from "../components/Alert";
 
 function FreelancerPayments() {
   const { user } = useAuth();
   const [payments, setPayments] = useState([]);
-  const [stats, setStats] = useState({});
+  const [stats, setStats] = useState({
+    totalEarnings: 0,
+    completedPayments: 0,
+    pendingPayments: 0,
+    totalPayments: 0
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [actionLoading, setActionLoading] = useState({});
 
   useEffect(() => {
     loadPayments();
@@ -20,25 +24,17 @@ function FreelancerPayments() {
       setLoading(true);
       const response = await getFreelancerPayments();
       setPayments(response.data || []);
-      setStats(response.stats || {});
+      setStats(response.stats || {
+        totalEarnings: 0,
+        completedPayments: 0,
+        pendingPayments: 0,
+        totalPayments: 0
+      });
     } catch (err) {
       setError("Failed to load payments");
       console.error(err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleRequestRelease = async (paymentId) => {
-    try {
-      setActionLoading(prev => ({ ...prev, [paymentId]: true }));
-      await requestPaymentRelease(paymentId);
-      setError("");
-      await loadPayments(); // Reload to get updated data
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to request payment release");
-    } finally {
-      setActionLoading(prev => ({ ...prev, [paymentId]: false }));
     }
   };
 
@@ -48,7 +44,8 @@ function FreelancerPayments() {
       'pending': { class: 'badge-warning', text: 'Pending' },
       'processing': { class: 'badge-info', text: 'Processing' },
       'failed': { class: 'badge-error', text: 'Failed' },
-      'refunded': { class: 'badge-neutral', text: 'Refunded' }
+      'cancelled': { class: 'badge-neutral', text: 'Cancelled' },
+      'refunded': { class: 'badge-secondary', text: 'Refunded' }
     };
     const config = statusConfig[status] || { class: 'badge-neutral', text: status };
     return <span className={`badge ${config.class}`}>{config.text}</span>;
@@ -79,13 +76,13 @@ function FreelancerPayments() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body text-center">
-            <div className="text-3xl font-bold text-success">${stats.totalEarnings?.toFixed(2) || '0.00'}</div>
+            <div className="text-3xl font-bold text-success">${stats.totalEarnings?.toFixed(2)}</div>
             <div className="text-gray-600">Total Earnings</div>
           </div>
         </div>
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body text-center">
-            <div className="text-3xl font-bold text-primary">{payments.length}</div>
+            <div className="text-3xl font-bold text-primary">{stats.totalPayments || 0}</div>
             <div className="text-gray-600">Total Payments</div>
           </div>
         </div>
@@ -120,11 +117,11 @@ function FreelancerPayments() {
                 <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-3">
-                      <h3 className="card-title text-xl">{payment.gig?.title}</h3>
+                      <h3 className="card-title text-xl">{payment.gig?.title || 'Gig'}</h3>
                       <div className="flex items-center gap-2">
                         {getStatusBadge(payment.status)}
                         <span className="text-xl font-bold text-success">
-                          ${payment.freelancerEarnings?.toFixed(2)}
+                          ${payment.freelancerEarnings?.toFixed(2) || '0.00'}
                         </span>
                       </div>
                     </div>
@@ -141,7 +138,7 @@ function FreelancerPayments() {
                             </div>
                           </div>
                           <div>
-                            <div className="font-semibold">{payment.client?.username}</div>
+                            <div className="font-semibold">{payment.client?.username || 'Client'}</div>
                             <div className="text-sm text-gray-600">Client</div>
                           </div>
                         </div>
@@ -150,15 +147,15 @@ function FreelancerPayments() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="font-medium">Total Amount:</span>
-                          <span>${payment.amount?.toFixed(2)}</span>
+                          <span>${payment.amount?.toFixed(2) || '0.00'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium">Platform Fee:</span>
-                          <span>${payment.platformFee?.toFixed(2)}</span>
+                          <span>${payment.platformFee?.toFixed(2) || '0.00'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium">Payment Method:</span>
-                          <span className="capitalize">{payment.paymentMethod}</span>
+                          <span className="capitalize">{payment.paymentMethod || 'card'}</span>
                         </div>
                       </div>
                     </div>
@@ -180,29 +177,6 @@ function FreelancerPayments() {
                       )}
                     </div>
                   </div>
-
-                  {/* Actions */}
-                  {payment.status === 'pending' && (
-                    <div className="flex flex-col gap-2 lg:w-48">
-                      <button
-                        onClick={() => handleRequestRelease(payment._id)}
-                        disabled={actionLoading[payment._id]}
-                        className="btn btn-warning btn-sm w-full"
-                      >
-                        {actionLoading[payment._id] ? (
-                          <>
-                            <span className="loading loading-spinner loading-xs"></span>
-                            Requesting...
-                          </>
-                        ) : (
-                          "Request Release"
-                        )}
-                      </button>
-                      <div className="text-xs text-gray-500 text-center">
-                        Ask client to release payment
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { fetchGig } from "../services/api";
+import { fetchGig, createPaymentIntent } from "../services/api";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import PaymentForm from "../components/payments/PaymentForm";
 import Alert from "../components/Alert";
 
-// Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const VITE_STRIPE_PUBLISHABLE_KEY = "pk_test_51SI13CIhBdydcxhCtdPmoscbTSZGI5UHQyhJP5kZYwJjBHma4qPiko8pkiu5L6a2agG18UmCffs4vVSFR445msAc00ZR3zplo8"
+
+const stripePromise = loadStripe(VITE_STRIPE_PUBLISHABLE_KEY);
 
 function PaymentPage() {
   const { id } = useParams();
@@ -18,6 +19,7 @@ function PaymentPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [clientSecret, setClientSecret] = useState(""); 
 
   useEffect(() => {
     loadGig();
@@ -28,6 +30,10 @@ function PaymentPage() {
       setLoading(true);
       const response = await fetchGig(id);
       setGig(response.data);
+      
+      if (response.data) {
+        await initializePaymentIntent(response.data._id);
+      }
     } catch (err) {
       setError("Failed to load gig details");
       console.error(err);
@@ -36,15 +42,35 @@ function PaymentPage() {
     }
   };
 
+  const initializePaymentIntent = async (gigId) => {
+    try {
+      console.log('Initializing payment intent for gig:', gigId);
+      const response = await createPaymentIntent({
+        gigId: gigId
+      });
+
+      console.log('Payment intent response:', response);
+
+      if (response.success && response.clientSecret) {
+        setClientSecret(response.clientSecret);
+        console.log('Client secret set:', response.clientSecret);
+      } else {
+        setError(response.message || 'Failed to initialize payment');
+      }
+    } catch (err) {
+      console.error('Initialize payment intent error:', err);
+      setError('Failed to initialize payment. Please try again.');
+    }
+  };
+
   const handlePaymentSuccess = (paymentIntent) => {
+    console.log('Payment successful:', paymentIntent);
     setPaymentSuccess(true);
-    // You could also show a success message or redirect
     setTimeout(() => {
       navigate('/client/payments');
     }, 3000);
   };
 
-  // Check if user is authorized to make payment
   if (user?.role !== 'client') {
     return (
       <div className="container mx-auto p-8">
@@ -191,81 +217,32 @@ function PaymentPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Skills */}
-              {gig.skillsRequired && gig.skillsRequired.length > 0 && (
-                <div className="border-t pt-4">
-                  <h4 className="font-semibold mb-2">Required Skills</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {gig.skillsRequired.map((skill, index) => (
-                      <span key={index} className="badge badge-outline badge-sm">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
         {/* Payment Section */}
         <div>
-          <Elements stripe={stripePromise}>
-            <PaymentForm 
-              gig={gig} 
-              onPaymentSuccess={handlePaymentSuccess}
-            />
-          </Elements>
-
-          {/* Payment Information */}
-          <div className="card bg-info/10 border border-info/20 mt-6">
-            <div className="card-body">
-              <h4 className="font-semibold text-info mb-3">Payment Information</h4>
-              <ul className="space-y-2 text-sm">
-                <li className="flex items-start gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-info mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Secure payment processed by Stripe</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-info mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Platform fee: 10% of the total amount</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-info mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Freelancer receives: 90% of the total amount</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-info mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span>Payment protected by GigConnect escrow</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Test Card Information */}
-          <div className="card bg-warning/10 border border-warning/20 mt-4">
-            <div className="card-body">
-              <h4 className="font-semibold text-warning mb-3">Test Mode</h4>
-              <p className="text-sm text-warning mb-2">
-                Use the following test card for payments:
-              </p>
-              <div className="space-y-1 text-sm">
-                <div><strong>Card Number:</strong> 4242 4242 4242 4242</div>
-                <div><strong>Expiry:</strong> Any future date</div>
-                <div><strong>CVC:</strong> Any 3 digits</div>
-                <div><strong>ZIP:</strong> Any 5 digits</div>
+          {clientSecret ? (
+            <Elements 
+              stripe={stripePromise}
+              options={{
+                clientSecret: clientSecret,
+              }}
+            >
+              <PaymentForm 
+                gig={gig} 
+                onPaymentSuccess={handlePaymentSuccess}
+              />
+            </Elements>
+          ) : (
+            <div className="card bg-base-100 shadow-lg">
+              <div className="card-body text-center">
+                <span className="loading loading-spinner loading-lg mb-4"></span>
+                <p>Initializing payment...</p>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

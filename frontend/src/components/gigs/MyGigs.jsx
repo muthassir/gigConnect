@@ -176,6 +176,16 @@ function MyGigs() {
                       View Details
                     </Link>
                     
+                    {/* ADDED: Payment Button */}
+                    {gig.status === 'in-progress' && gig.hiredFreelancer && (
+                      <Link 
+                        to={`/gigs/${gig._id}/payment`}
+                        className="btn btn-success btn-sm w-full"
+                      >
+                        Make Payment
+                      </Link>
+                    )}
+                    
                     {gig.status === 'open' && (
                       <>
                         <button

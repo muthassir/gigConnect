@@ -88,7 +88,7 @@ export const updateProfile = async (profileData) => {
   return response.data;
 };
 
-// Message API calls
+// Message API
 export const getMyConversations = async () => {
   const response = await API.get('/messages/conversations');
   return response.data;
@@ -112,7 +112,7 @@ export const startConversation = async (receiverId, gigId = null) => {
   return response.data;
 };
 
-// Payment API calls
+// Payment API
 export const createPaymentIntent = async (paymentData) => {
   const response = await API.post('/payments/create-intent', paymentData);
   return response.data;
@@ -133,18 +133,8 @@ export const getFreelancerPayments = async () => {
   return response.data;
 };
 
-export const getPaymentDetails = async (paymentId) => {
-  const response = await API.get(`/payments/${paymentId}`);
-  return response.data;
-};
-
-export const requestPaymentRelease = async (paymentId) => {
-  const response = await API.post(`/payments/${paymentId}/request-release`);
-  return response.data;
-};
-
-export const releasePayment = async (paymentId) => {
-  const response = await API.post(`/payments/${paymentId}/release`);
+export const updateApplicationStatus = async (gigId, statusData) => {
+  const response = await API.put(`/gigs/${gigId}/application-status`, statusData);
   return response.data;
 };
 
