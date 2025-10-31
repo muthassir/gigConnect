@@ -10,7 +10,7 @@ function PublicDashboard() {
   ];
 
   return (
-    <div className="container p-8 lg:h-screen h-full">
+    <div className="p-8 lg:h-screen h-full bg-base-100">
       <div className="text-center mb-12">
         <h1 className="text-4xl font-bold text-success mb-4">Welcome to GigConnect</h1>
         <p className="text-lg text-gray-600 mb-8">

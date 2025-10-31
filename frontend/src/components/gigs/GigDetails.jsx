@@ -4,6 +4,11 @@ import { useAuth } from "../../context/AuthContext";
 import { fetchGig, applyToGig, startConversation, updateApplicationStatus } from "../../services/api";
 import Alert from "../Alert";
 
+import { getGigReviews } from "../../services/api";
+import ReviewForm from "../reviews/ReviewForm";
+import ReviewList from "../reviews/ReviewList";
+import StarRating from "../reviews/StarRating";
+
 const GigDetails = () => {
   const { id } = useParams();
   const { user } = useAuth();
@@ -20,10 +25,19 @@ const GigDetails = () => {
     bidAmount: ""
   });
 
+  // for reviews
+const [reviews, setReviews] = useState([]);
+const [averageRating, setAverageRating] = useState(0);
+const [totalReviews, setTotalReviews] = useState(0);
+const [showReviewForm, setShowReviewForm] = useState(false);
+const [hasReviewed, setHasReviewed] = useState(false);
+
   useEffect(() => {
     loadGig();
+    loadReviews(); 
   }, [id]);
 
+  // load gig
   const loadGig = async () => {
     try {
       setLoading(true);
@@ -37,6 +51,39 @@ const GigDetails = () => {
     }
   };
 
+  // load review
+  // Add this function after your existing functions
+const loadReviews = async () => {
+  try {
+    const response = await getGigReviews(id);
+    if (response.success) {
+      setReviews(response.data);
+      setAverageRating(response.averageRating);
+      setTotalReviews(response.totalReviews);
+      
+      // Check if current user has already reviewed
+      if (user) {
+        const userReview = response.data.find(review => 
+          review.reviewer._id === user._id
+        );
+        setHasReviewed(!!userReview);
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load reviews:', err);
+  }
+};
+
+// Add this function after your existing functions
+const handleReviewSubmitted = (newReview) => {
+  setReviews(prev => [newReview, ...prev]);
+  setHasReviewed(true);
+  setShowReviewForm(false);
+  loadReviews(); // Reload to update averages
+};
+
+
+// start conversations
   const handleStartConversation = async (receiverId) => {
     try {
       setConversationLoading(true);
@@ -406,6 +453,73 @@ const GigDetails = () => {
               )}
             </div>
           )}
+          {/* review */}
+<div className="border-t pt-6 mt-6">
+  <div className="flex justify-between items-center mb-6">
+    <div>
+      <h3 className="text-2xl font-bold">Reviews</h3>
+      <div className="flex items-center gap-4 mt-2">
+        <div className="flex items-center gap-2">
+          <StarRating rating={averageRating} readonly size="lg" />
+          <span className="text-lg font-semibold">{averageRating.toFixed(1)}</span>
+        </div>
+        <span className="text-gray-600">({totalReviews} reviews)</span>
+      </div>
+    </div>
+    
+    {/* Show review button for eligible users */}
+    {user && gig.status === 'completed' && !hasReviewed && (
+      <button 
+        onClick={() => setShowReviewForm(true)}
+        className="btn btn-primary"
+      >
+        Write a Review
+      </button>
+    )}
+  </div>
+
+  {/* Review Form */}
+  {showReviewForm && user && (
+    <div className="mb-6">
+      {user._id === gig.client?._id && gig.hiredFreelancer && (
+        <ReviewForm
+          gig={gig}
+          reviewee={gig.hiredFreelancer}
+          type="client_to_freelancer"
+          onReviewSubmitted={handleReviewSubmitted}
+        />
+      )}
+      {user._id === gig.hiredFreelancer?._id && gig.client && (
+        <ReviewForm
+          gig={gig}
+          reviewee={gig.client}
+          type="freelancer_to_client"
+          onReviewSubmitted={handleReviewSubmitted}
+        />
+      )}
+      <div className="text-center mt-2">
+        <button 
+          onClick={() => setShowReviewForm(false)}
+          className="btn btn-ghost btn-sm"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )}
+
+  {/* Reviews List */}
+  <ReviewList
+    reviews={reviews}
+    averageRating={averageRating}
+    totalReviews={totalReviews}
+    ratingCounts={reviews.reduce((acc, review) => {
+      acc[review.rating] = (acc[review.rating] || 0) + 1;
+      return acc;
+    }, {1: 0, 2: 0, 3: 0, 4: 0, 5: 0})}
+  />
+</div>
+          {/* review-end */}
 
           {/* Gig Stats */}
           <div className="border-t pt-6 mt-6">

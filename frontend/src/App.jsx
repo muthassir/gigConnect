@@ -16,6 +16,7 @@ import { SocketProvider } from "./context/socketContext";
 import ClientPayments from "./pages/ClientPayments";
 import FreelancerPayments from "./pages/FreelancerPayments";
 import PaymentPage from "./pages/PaymentPage";
+import MyReviews from "./pages/MyReviews";
 
 // protected route
 const ProtectedRoute = ({ element }) => {
@@ -54,7 +55,7 @@ const App = () => {
               <Route path="/client/dashboard" element={<Dashboard />} />
               <Route path="/freelancer/dashboard" element={<Dashboard />} />
               <Route path="/messages" element={<Messages />} />
-
+               {/* gig routes */}
               <Route path="/gigfeeds" element={<GigFeed />} />
               <Route path="/gigs/:id" element={<GigDetails />} />
               <Route path="/gigs/:id/apply" element={<GigDetails />} />
@@ -67,6 +68,10 @@ const App = () => {
               <Route path="/client/payments" element={<ClientPayments />} />
               <Route path="/freelancer/earnings" element={<FreelancerPayments />} />
               <Route path="/gigs/:id/payment" element={<PaymentPage />} />
+
+              {/* reviews */}
+              <Route path="/my-reviews" element={<MyReviews />} />
+
             </Routes>
           </div>
           <Footer />

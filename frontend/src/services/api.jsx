@@ -138,4 +138,35 @@ export const updateApplicationStatus = async (gigId, statusData) => {
   return response.data;
 };
 
+//review api
+export const createReview = async (reviewData) => {
+  const response = await API.post('/reviews', reviewData);
+  return response.data;
+};
+
+export const getGigReviews = async (gigId) => {
+  const response = await API.get(`/reviews/gig/${gigId}`);
+  return response.data;
+};
+
+export const getUserReviews = async (userId) => {
+  const response = await API.get(`/reviews/user/${userId}`);
+  return response.data;
+};
+
+export const getMyReviews = async () => {
+  const response = await API.get('/reviews/my-reviews');
+  return response.data;
+};
+
+export const updateReview = async (reviewId, reviewData) => {
+  const response = await API.put(`/reviews/${reviewId}`, reviewData);
+  return response.data;
+};
+
+export const deleteReview = async (reviewId) => {
+  const response = await API.delete(`/reviews/${reviewId}`);
+  return response.data;
+};
+
 export default API;

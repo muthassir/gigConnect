@@ -10,7 +10,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="navbar bg-base-100 shadow-sm fixed top-0 z-10">
+    <header className="navbar bg-base-200 shadow-sm fixed top-0 z-10">
       {/* start */}
       {/* Dropdown Menu */}
       <div className="navbar-start">
@@ -40,10 +40,10 @@ const Navbar = () => {
             className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
           >
             <li>
-              <Link to="/">Home</Link>
+              <Link to="/">Dashboard</Link>
             </li>
             <li>
-              <Link to="/portfolio">Portfolio</Link>
+              <Link to="/profile">Profile</Link>
             </li>
             <li>
               <Link to="/messages">Message</Link>
@@ -54,16 +54,14 @@ const Navbar = () => {
             <li>
               <Link to="/about">About</Link>
             </li>
+             <li>
+              <Link to="/contact">Contact</Link>
+            </li>
 
             {/*  Auth Links */}
             {!user && (
               <li>
                 <Link to="/login">Login</Link>
-              </li>
-            )}
-            {user && (
-              <li>
-                <Link to="/dashboard">Dashboard</Link>
               </li>
             )}
             {user && (

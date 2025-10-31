@@ -63,7 +63,7 @@ const Register = () => {
               <label className="label">Password</label>
               <input type="password" className="input input-bordered w-full" placeholder="Password" value={password} onChange={(e)=>setPassword(e.target.value)} />
               <label className="block mt-4">I am a</label>
-              <select value={role} onChange={(e) => setRole(e.target.value)} className="input input-bordered text-success cursor-pointer w-full">
+              <select value={role} onChange={(e) => setRole(e.target.value)} className="select select-bordered text-success cursor-pointer w-full">
                 <option value="freelancer">freelancer</option>
                 <option value="client">client</option>
               </select>
