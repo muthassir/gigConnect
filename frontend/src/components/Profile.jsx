@@ -23,7 +23,7 @@ function Profile() {
 
   const [originalData, setOriginalData] = useState({});
 
-  // Cloudinary configuration (replace with your actual cloud name)
+  // Cloudinary 
   const cloudName = "your-cloudinary-cloud-name";
   const uploadPreset = "your-upload-preset";
 
@@ -124,7 +124,6 @@ function Profile() {
       setSuccess("Profile updated successfully!");
       setEditMode(false);
       
-      // Update original data
       setOriginalData(formData);
       
     } catch (err) {

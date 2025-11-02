@@ -48,7 +48,7 @@ const GigCard = ({ gig }) => {
             <div className="avatar">
               <div className="w-8 h-8 rounded-full">
                 <img 
-                  src={gig.client?.avatar || '/default-avatar.png'} 
+                  src={gig.client?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80'} 
                   alt={gig.client?.name}
                 />
               </div>

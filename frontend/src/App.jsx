@@ -17,6 +17,8 @@ import ClientPayments from "./pages/ClientPayments";
 import FreelancerPayments from "./pages/FreelancerPayments";
 import PaymentPage from "./pages/PaymentPage";
 import MyReviews from "./pages/MyReviews";
+import About from "./pages/About";
+import Contact from "./pages/Contact"
 
 // protected route
 const ProtectedRoute = ({ element }) => {
@@ -39,7 +41,8 @@ const App = () => {
           <div className="pt-16 min-h-screen"> 
             <Routes>
               <Route path="/" element={<Dashboard />} />
-
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
               {/* protected route */}
               <Route 
                 path="/login" 

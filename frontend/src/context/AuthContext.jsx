@@ -16,8 +16,8 @@ export const AuthProvider = ({ children }) => {
 
   // API
   const API = axios.create({
-    // baseURL: "http://localhost:5000",
-    baseURL:  "https://gigconnect-jd3a.onrender.com",
+    baseURL: "http://localhost:5000",
+    // baseURL:  "https://gigconnect-jd3a.onrender.com",
   });
 
   // API headers function
