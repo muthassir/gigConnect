@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
-  // baseURL: "https://gigconnect-jd3a.onrender.com/api",
+  // baseURL: 'http://localhost:5000/api',
+  baseURL: "https://gigconnect-jd3a.onrender.com/api",
   withCredentials: true,
 });
 
@@ -30,6 +30,23 @@ API.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+
+// Auth APIs
+export const login = async (email, password) => {
+  const response = await API.post('/auth/login', { email, password });
+  return response.data;
+};
+
+export const register = async (username, email, password, role) => {
+  const response = await API.post('/auth/register', {
+    username,
+    email,
+    password,
+    role,
+  });
+  return response.data;
+};
 
 //gig apis
 export const fetchGigs = async (params = {}) => {

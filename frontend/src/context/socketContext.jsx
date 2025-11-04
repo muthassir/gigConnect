@@ -6,11 +6,14 @@ const SocketContext = createContext();
 export const SocketProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
   const socketRef = useRef(null);
+  // const HOST = "http://localhost:5000"
+    const HOST = "https://gigconnect-jd3a.onrender.com"
+
 
   useEffect(() => {
     // Only create socket if it doesn't exist
     if (!socketRef.current) {
-      socketRef.current = io("http://localhost:5000", {
+      socketRef.current = io(HOST, {
         transports: ["websocket", "polling"], // Add polling as fallback
         withCredentials: true,
         autoConnect: true,

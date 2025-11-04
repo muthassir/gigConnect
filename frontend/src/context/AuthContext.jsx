@@ -1,6 +1,6 @@
 import { useContext, createContext, useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { login as apiLogin, register as apiRegister } from "../services/api";
 
 const AuthContext = createContext();
 
@@ -11,30 +11,13 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const navigate = useNavigate()
-
-  // API
-  const API = axios.create({
-    baseURL: "http://localhost:5000",
-    // baseURL:  "https://gigconnect-jd3a.onrender.com",
-  });
-
-  // API headers function
-  const setAuthHeader = (token) => {
-    if (token) {
-      API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    } else {
-      delete API.defaults.headers.common["Authorization"];
-    }
-  };
+  const navigate = useNavigate();
 
   // Check for stored token and user
   useEffect(() => {
     const token = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
     if (token && savedUser) {
-      setAuthHeader(token);
       try {
         setUser(JSON.parse(savedUser));
       } catch (e) {
@@ -46,13 +29,13 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  // Login function
+  // Login function using API
   const login = async (email, password) => {
     try {
       setLoading(true);
-      const response = await API.post("/api/auth/login", { email, password });
+      const response = await apiLogin(email, password);
       
-      const { token, user: userData } = response.data; 
+      const { token, user: userData } = response; 
 
       if (!token || !userData) {
           throw new Error("Server response did not contain token or user data.");
@@ -60,21 +43,19 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
-      setAuthHeader(token);
       setUser(userData); 
       
       if (userData.role === 'client') {
-      navigate('/client/dashboard');
-    } else {
-      navigate('/freelancer/dashboard');
-    }
+        navigate('/client/dashboard');
+      } else {
+        navigate('/freelancer/dashboard');
+      }
 
       return { success: true, user: userData };
     } catch (error) {
-      console.error("Login error:", error?.response?.data ?? error.message ?? error);
+      console.error("Login error:", error);
       const message =
         error?.response?.data?.message ||
-        error?.response?.data ||
         error?.message ||
         "Login failed";
       
@@ -84,18 +65,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Register function
+  // Register function using API
   const register = async (username, email, password, role) => {
     try {
       setLoading(true);
-      const response = await API.post("/api/auth/register", {
-        username,
-        email,
-        password,
-        role,
-      });
+      const response = await apiRegister(username, email, password, role);
 
-      const { token, user: userData } = response.data;
+      const { token, user: userData } = response;
 
       if (!token || !userData) {
           throw new Error("Server response did not contain token or user data.");
@@ -103,23 +79,19 @@ export const AuthProvider = ({ children }) => {
       
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(userData));
-      setAuthHeader(token);
-      setUser(userData)
+      setUser(userData);
 
       if(userData.role === "client"){
-        navigate("/client/dashboard")
-      }else{
-        navigate("/client/dashboard")
+        navigate("/client/dashboard");
+      } else {
+        navigate("/freelancer/dashboard");
       }
-           
-
 
       return { success: true, user: userData };
     } catch (error) {
-      console.error("Register error:", error?.response?.data ?? error.message ?? error);
+      console.error("Register error:", error);
       const message =
         error?.response?.data?.message ||
-        error?.response?.data ||
         error?.message ||
         "Registration failed";
 
@@ -133,8 +105,14 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    setAuthHeader(null);
     setUser(null);
+    navigate('/login');
+  };
+
+  const updateUser = (updatedUserData) => {
+    const updatedUser = { ...user, ...updatedUserData };
+    setUser(updatedUser);
+    localStorage.setItem("user", JSON.stringify(updatedUser));
   };
 
   const value = {
@@ -143,7 +121,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     loading,
-    API, 
+    updateUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

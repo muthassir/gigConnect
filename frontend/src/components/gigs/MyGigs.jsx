@@ -242,9 +242,10 @@ function MyGigs() {
                             <div className="avatar">
                               <div className="w-8 h-8 rounded-full">
                                 <img 
-                                  src={application.freelancer?.avatar || '/default-avatar.png'} 
-                                  alt={application.freelancer?.username}
-                                />
+  src={application.freelancer?.avatar || 'https://via.placeholder.com/32x32?text=U'} 
+  alt={application.freelancer?.username}
+  className="w-8 h-8 rounded-full"
+/>
                               </div>
                             </div>
                             <div>

@@ -4,28 +4,27 @@ import { updateProfile } from "../services/api";
 import Alert from "../components/Alert";
 
 function Profile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [editMode, setEditMode] = useState(false);
   const fileInputRef = useRef(null);
-  
+  const [imageLoading, setImageLoading] = useState(true);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     bio: "",
     location: "",
     skills: "",
-    avatar: ""
+    avatar: "",
   });
-
   const [originalData, setOriginalData] = useState({});
 
-  // Cloudinary 
-  const cloudName = "your-cloudinary-cloud-name";
-  const uploadPreset = "your-upload-preset";
+  // Cloudinary
+  const cloudName = "de13d1vnc";
+  const uploadPreset = "my_upload_preset";
 
   useEffect(() => {
     if (user) {
@@ -35,7 +34,7 @@ function Profile() {
         bio: user.bio || "",
         location: user.location || "",
         skills: user.skills ? user.skills.join(", ") : "",
-        avatar: user.avatar || ""
+        avatar: user.avatar || "",
       };
       setFormData(userData);
       setOriginalData(userData);
@@ -44,9 +43,9 @@ function Profile() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -58,7 +57,7 @@ function Profile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
+    if (!file.type.startsWith("image/")) {
       setError("Please select an image file");
       return;
     }
@@ -73,14 +72,14 @@ function Profile() {
 
     try {
       const uploadFormData = new FormData();
-      uploadFormData.append('file', file);
-      uploadFormData.append('upload_preset', uploadPreset);
-      uploadFormData.append('cloud_name', cloudName);
+      uploadFormData.append("file", file);
+      uploadFormData.append("upload_preset", uploadPreset);
+      uploadFormData.append("cloud_name", cloudName);
 
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
         {
-          method: 'POST',
+          method: "POST",
           body: uploadFormData,
         }
       );
@@ -88,50 +87,64 @@ function Profile() {
       const data = await response.json();
 
       if (data.secure_url) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          avatar: data.secure_url
+          avatar: data.secure_url,
         }));
         setSuccess("Image uploaded successfully!");
       } else {
         setError("Failed to upload image");
       }
     } catch (err) {
-      console.error('Upload error:', err);
+      console.error("Upload error:", err);
       setError("Failed to upload image");
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+  setSuccess("");
 
-    try {
-      const profileData = {
-        ...formData,
-        skills: formData.skills.split(',').map(skill => skill.trim()).filter(skill => skill)
-      };
+  try {
+    const profileData = {
+      ...formData,
+      skills: formData.skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter((skill) => skill),
+    };
 
-      const response = await updateProfile(profileData);
-      
-      setSuccess("Profile updated successfully!");
-      setEditMode(false);
-      
-      setOriginalData(formData);
-      
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to update profile");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const response = await updateProfile(profileData);
+
+    // Update the user in context and localStorage
+    const updatedUser = {
+      ...user,
+      ...formData,
+      skills: formData.skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter((skill) => skill),
+    };
+    
+    updateUser(updatedUser)
+
+    setSuccess("Profile updated successfully!");
+    setEditMode(false);
+    setOriginalData(formData);
+    
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to update profile");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleCancel = () => {
     setFormData(originalData);
@@ -147,7 +160,8 @@ function Profile() {
   };
 
   const handleImageError = (e) => {
-    e.target.src = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80';
+    e.target.src =
+      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80";
   };
 
   if (!user) {
@@ -165,15 +179,25 @@ function Profile() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold text-success">My Profile</h1>
-          <p className="text-gray-600 mt-2">Manage your account information and preferences</p>
+          <p className="text-gray-600 mt-2">
+            Manage your account information and preferences
+          </p>
         </div>
         {!editMode && (
-          <button 
-            onClick={handleEdit}
-            className="btn btn-primary"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          <button onClick={handleEdit} className="btn btn-primary">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
             </svg>
             Edit Profile
           </button>
@@ -189,12 +213,22 @@ function Profile() {
           <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
             <div className="avatar relative">
               <div className="w-24 h-24 rounded-full ring ring-primary ring-offset-2 ring-offset-base-100">
-                <img 
-                  src={formData.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80'} 
+                <img
+                  src={
+                    formData.avatar ||
+                    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80"
+                  }
                   alt={formData.username}
                   className="w-full h-full object-cover"
                   onError={handleImageError}
+                  onLoad={() => setImageLoading(false)}
+                  style={{ display: imageLoading ? "none" : "block" }}
                 />
+                {imageLoading && (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="loading loading-spinner"></span>
+                  </div>
+                )}
               </div>
               {editMode && (
                 <button
@@ -207,14 +241,30 @@ function Profile() {
                   {uploading ? (
                     <span className="loading loading-spinner loading-xs"></span>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
                     </svg>
                   )}
                 </button>
               )}
-              
+
               <input
                 type="file"
                 ref={fileInputRef}
@@ -227,7 +277,9 @@ function Profile() {
               <h2 className="text-2xl font-bold">{formData.username}</h2>
               <p className="text-gray-600 capitalize">{user.role}</p>
               <div className="flex gap-2 mt-2">
-                <span className="badge badge-primary capitalize">{user.role}</span>
+                <span className="badge badge-primary capitalize">
+                  {user.role}
+                </span>
                 <span className="badge badge-ghost">
                   Member since {new Date(user.createdAt).toLocaleDateString()}
                 </span>
@@ -295,7 +347,7 @@ function Profile() {
                 />
               </div>
 
-              {user.role === 'freelancer' && (
+              {user.role === "freelancer" && (
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-semibold">Skills</span>
@@ -309,7 +361,9 @@ function Profile() {
                     className="input input-bordered"
                   />
                   <label className="label">
-                    <span className="label-text-alt">Separate skills with commas</span>
+                    <span className="label-text-alt">
+                      Separate skills with commas
+                    </span>
                   </label>
                 </div>
               )}
@@ -345,10 +399,14 @@ function Profile() {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <h3 className="font-semibold text-lg mb-4">Basic Information</h3>
+                  <h3 className="font-semibold text-lg mb-4">
+                    Basic Information
+                  </h3>
                   <div className="space-y-3">
                     <div>
-                      <span className="font-medium text-gray-600">Username:</span>
+                      <span className="font-medium text-gray-600">
+                        Username:
+                      </span>
                       <p className="mt-1">{formData.username}</p>
                     </div>
                     <div>
@@ -356,8 +414,12 @@ function Profile() {
                       <p className="mt-1">{formData.email}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-gray-600">Location:</span>
-                      <p className="mt-1">{formData.location || "Not specified"}</p>
+                      <span className="font-medium text-gray-600">
+                        Location:
+                      </span>
+                      <p className="mt-1">
+                        {formData.location || "Not specified"}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -367,14 +429,21 @@ function Profile() {
                   <div className="space-y-3">
                     <div>
                       <span className="font-medium text-gray-600">Bio:</span>
-                      <p className="mt-1">{formData.bio || "No bio added yet"}</p>
+                      <p className="mt-1">
+                        {formData.bio || "No bio added yet"}
+                      </p>
                     </div>
-                    {user.role === 'freelancer' && formData.skills && (
+                    {user.role === "freelancer" && formData.skills && (
                       <div>
-                        <span className="font-medium text-gray-600">Skills:</span>
+                        <span className="font-medium text-gray-600">
+                          Skills:
+                        </span>
                         <div className="flex flex-wrap gap-1 mt-1">
-                          {formData.skills.split(',').map((skill, index) => (
-                            <span key={index} className="badge badge-outline badge-sm">
+                          {formData.skills.split(",").map((skill, index) => (
+                            <span
+                              key={index}
+                              className="badge badge-outline badge-sm"
+                            >
                               {skill.trim()}
                             </span>
                           ))}
@@ -397,21 +466,33 @@ function Profile() {
               </div>
               <div className="flex justify-between items-center">
                 <span>Profile Picture</span>
-                <span className={`badge ${formData.avatar ? 'badge-success' : 'badge-warning'}`}>
-                  {formData.avatar ? 'Added' : 'Missing'}
+                <span
+                  className={`badge ${
+                    formData.avatar ? "badge-success" : "badge-warning"
+                  }`}
+                >
+                  {formData.avatar ? "Added" : "Missing"}
                 </span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Bio</span>
-                <span className={`badge ${formData.bio ? 'badge-success' : 'badge-warning'}`}>
-                  {formData.bio ? 'Added' : 'Missing'}
+                <span
+                  className={`badge ${
+                    formData.bio ? "badge-success" : "badge-warning"
+                  }`}
+                >
+                  {formData.bio ? "Added" : "Missing"}
                 </span>
               </div>
-              {user.role === 'freelancer' && (
+              {user.role === "freelancer" && (
                 <div className="flex justify-between items-center">
                   <span>Skills</span>
-                  <span className={`badge ${formData.skills ? 'badge-success' : 'badge-warning'}`}>
-                    {formData.skills ? 'Added' : 'Missing'}
+                  <span
+                    className={`badge ${
+                      formData.skills ? "badge-success" : "badge-warning"
+                    }`}
+                  >
+                    {formData.skills ? "Added" : "Missing"}
                   </span>
                 </div>
               )}

@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { useAuth } from "../context/AuthContext";
-import { getFreelancerPayments } from "../services/api";
-import Alert from "../components/Alert";
+import { useAuth } from "../../context/AuthContext";
+import { getClientPayments } from "../../services/api";
+import Alert from "../Alert";
 
-function FreelancerPayments() {
+function ClientPayments() {
   const { user } = useAuth();
   const [payments, setPayments] = useState([]);
-  const [stats, setStats] = useState({
-    totalEarnings: 0,
-    completedPayments: 0,
-    pendingPayments: 0,
-    totalPayments: 0
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -22,14 +16,8 @@ function FreelancerPayments() {
   const loadPayments = async () => {
     try {
       setLoading(true);
-      const response = await getFreelancerPayments();
+      const response = await getClientPayments();
       setPayments(response.data || []);
-      setStats(response.stats || {
-        totalEarnings: 0,
-        completedPayments: 0,
-        pendingPayments: 0,
-        totalPayments: 0
-      });
     } catch (err) {
       setError("Failed to load payments");
       console.error(err);
@@ -51,11 +39,21 @@ function FreelancerPayments() {
     return <span className={`badge ${config.class}`}>{config.text}</span>;
   };
 
-  if (user?.role !== 'freelancer') {
+  const getTotalSpent = () => {
+    return payments
+      .filter(p => p.status === 'completed')
+      .reduce((total, payment) => total + payment.amount, 0);
+  };
+
+  const getCompletedPayments = () => {
+    return payments.filter(p => p.status === 'completed').length;
+  };
+
+  if (user?.role !== 'client') {
     return (
       <div className="container mx-auto p-8">
         <div className="alert alert-error">
-          <span>Only freelancers can access this page.</span>
+          <span>Only clients can access this page.</span>
         </div>
       </div>
     );
@@ -65,37 +63,31 @@ function FreelancerPayments() {
     <div className="container mx-auto p-6">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-primary">My Earnings</h1>
-          <p className="text-gray-600 mt-2">Track your earnings and payment history</p>
+          <h1 className="text-3xl font-bold text-success">My Payments</h1>
+          <p className="text-gray-600 mt-2">Track your payment history and transactions</p>
         </div>
       </div>
 
       {error && <Alert alert={error} type="error" />}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body text-center">
-            <div className="text-3xl font-bold text-success">${stats.totalEarnings?.toFixed(2)}</div>
-            <div className="text-gray-600">Total Earnings</div>
-          </div>
-        </div>
-        <div className="card bg-base-100 shadow-lg">
-          <div className="card-body text-center">
-            <div className="text-3xl font-bold text-primary">{stats.totalPayments || 0}</div>
+            <div className="text-3xl font-bold text-primary">{payments.length}</div>
             <div className="text-gray-600">Total Payments</div>
           </div>
         </div>
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body text-center">
-            <div className="text-3xl font-bold text-info">{stats.completedPayments || 0}</div>
-            <div className="text-gray-600">Completed</div>
+            <div className="text-3xl font-bold text-success">${getTotalSpent().toFixed(2)}</div>
+            <div className="text-gray-600">Total Spent</div>
           </div>
         </div>
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body text-center">
-            <div className="text-3xl font-bold text-warning">{stats.pendingPayments || 0}</div>
-            <div className="text-gray-600">Pending</div>
+            <div className="text-3xl font-bold text-info">{getCompletedPayments()}</div>
+            <div className="text-gray-600">Completed</div>
           </div>
         </div>
       </div>
@@ -106,8 +98,8 @@ function FreelancerPayments() {
         </div>
       ) : payments.length === 0 ? (
         <div className="text-center py-12">
-          <div className="text-2xl text-gray-500 mb-4">No earnings yet</div>
-          <p className="text-gray-600">Your earnings will appear here after clients make payments</p>
+          <div className="text-2xl text-gray-500 mb-4">No payments yet</div>
+          <p className="text-gray-600">Your payment history will appear here after you make payments</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -121,7 +113,7 @@ function FreelancerPayments() {
                       <div className="flex items-center gap-2">
                         {getStatusBadge(payment.status)}
                         <span className="text-xl font-bold text-success">
-                          ${payment.freelancerEarnings?.toFixed(2) || '0.00'}
+                          ${payment.amount?.toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -132,26 +124,26 @@ function FreelancerPayments() {
                           <div className="avatar">
                             <div className="w-10 h-10 rounded-full">
                               <img 
-                                src={payment.client?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80'} 
-                                alt={payment.client?.username}
+                                src={payment.freelancer?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80'} 
+                                alt={payment.freelancer?.username}
                               />
                             </div>
                           </div>
                           <div>
-                            <div className="font-semibold">{payment.client?.username || 'Client'}</div>
-                            <div className="text-sm text-gray-600">Client</div>
+                            <div className="font-semibold">{payment.freelancer?.username || 'Freelancer'}</div>
+                            <div className="text-sm text-gray-600">Freelancer</div>
                           </div>
                         </div>
                       </div>
 
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="font-medium">Total Amount:</span>
-                          <span>${payment.amount?.toFixed(2) || '0.00'}</span>
-                        </div>
-                        <div className="flex justify-between">
                           <span className="font-medium">Platform Fee:</span>
                           <span>${payment.platformFee?.toFixed(2) || '0.00'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="font-medium">Freelancer Received:</span>
+                          <span className="text-success">${payment.freelancerEarnings?.toFixed(2) || '0.00'}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="font-medium">Payment Method:</span>
@@ -175,6 +167,14 @@ function FreelancerPayments() {
                           {new Date(payment.completedAt).toLocaleDateString()}
                         </div>
                       )}
+                      {payment.transactionId && (
+                        <div>
+                          <span className="font-medium">Transaction ID:</span>{' '}
+                          <code className="text-xs bg-base-200 px-2 py-1 rounded">
+                            {payment.transactionId}
+                          </code>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -187,4 +187,4 @@ function FreelancerPayments() {
   );
 }
 
-export default FreelancerPayments;
+export default ClientPayments;

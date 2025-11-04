@@ -1,7 +1,6 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Gig = require('../models/Gig.js');
 const Payment = require('../models/Payment.js');
-const User = require('../models/User.js');
 
 exports.createPaymentIntent = async (req, res) => {
   try {

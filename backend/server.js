@@ -1,10 +1,11 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
 const dotenv = require("dotenv");
 const http = require("http");
 const { Server } = require("socket.io");
+const connectDB = require("./config/db.js")
+const socketHandler = require("./utils/socketHandler.js")
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
 
-// Middleware
+//cors middleware
 app.use(cors({
   origin: ['http://localhost:5173','https://gigconnects.netlify.app', 'https://gigconnect-jd3a.onrender.com'],
   credentials: true,
@@ -37,12 +38,7 @@ app.use(express.json());
 
 
 // db connection
-mongoose.connect(process.env.MONGO_URL, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log(err));
+connectDB();
 
 // routes
 app.use("/api/auth", require("./routes/authRoute.js"));
@@ -66,29 +62,8 @@ const io = new Server(server, {
   transports: ['websocket', 'polling'] 
 });
 
-io.on("connection", (socket) => {
-  console.log("socket connected", socket.id);
-
-  socket.on("join", ({ room }) => {
-    socket.join(room);
-    console.log(`${socket.id} joined ${room}`);
-  });
-
-  socket.on("leave", ({ room }) => {
-    socket.leave(room);
-  });
-
-  socket.on("message", (msg) => {
-    io.to(msg.room).emit("message", {
-      ...msg,
-      createdAt: new Date().toISOString()
-    });
-  });
-
-  socket.on("disconnect", (reason) => {
-    console.log("socket disconnected", socket.id, "reason:", reason);
-  });
-});
+// intializing socket handler
+socketHandler(io)
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server started at port ${PORT}`));
