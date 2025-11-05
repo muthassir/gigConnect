@@ -17,9 +17,11 @@ function PaymentPage() {
   const navigate = useNavigate();
   const [gig, setGig] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [initializingPayment, setInitializingPayment] = useState(false);
   const [error, setError] = useState("");
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [clientSecret, setClientSecret] = useState(""); 
+  const [clientSecret, setClientSecret] = useState("");
+  const [paymentInitialized, setPaymentInitialized] = useState(false); 
 
   useEffect(() => {
     loadGig();
@@ -28,23 +30,39 @@ function PaymentPage() {
   const loadGig = async () => {
     try {
       setLoading(true);
+      setError("");
       const response = await fetchGig(id);
+      
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to load gig');
+      }
+      
       setGig(response.data);
       
-      if (response.data) {
+      // FIX: Only initialize payment if not already done and gig exists
+      if (response.data && !paymentInitialized && !clientSecret) {
         await initializePaymentIntent(response.data._id);
       }
     } catch (err) {
-      setError("Failed to load gig details");
-      console.error(err);
+      setError(err.message || "Failed to load gig details");
+      console.error('Load gig error:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const initializePaymentIntent = async (gigId) => {
+    // FIX: Prevent multiple simultaneous calls
+    if (initializingPayment) {
+      console.log('Payment initialization already in progress');
+      return;
+    }
+
     try {
+      setInitializingPayment(true);
+      setPaymentInitialized(true); // Mark as initialized
       console.log('Initializing payment intent for gig:', gigId);
+      
       const response = await createPaymentIntent({
         gigId: gigId
       });
@@ -53,13 +71,21 @@ function PaymentPage() {
 
       if (response.success && response.clientSecret) {
         setClientSecret(response.clientSecret);
-        console.log('Client secret set:', response.clientSecret);
+        console.log('Client secret set successfully');
+        
+        // If this is an existing payment, show info message
+        if (response.existingPayment) {
+          setError("Using existing payment session. Complete the payment or try again if needed.");
+        }
       } else {
-        setError(response.message || 'Failed to initialize payment');
+        throw new Error(response.message || 'Failed to initialize payment');
       }
     } catch (err) {
       console.error('Initialize payment intent error:', err);
-      setError('Failed to initialize payment. Please try again.');
+      setError(err.message || 'Failed to initialize payment. Please try again.');
+      setPaymentInitialized(false); // Reset on error to allow retry
+    } finally {
+      setInitializingPayment(false);
     }
   };
 
@@ -67,10 +93,30 @@ function PaymentPage() {
     console.log('Payment successful:', paymentIntent);
     setPaymentSuccess(true);
     setTimeout(() => {
-      navigate('/client/payments');
+      navigate('/client/payments', { 
+        state: { message: 'Payment completed successfully!' } 
+      });
     }, 3000);
   };
 
+  const handleRetryPayment = async () => {
+    setError("");
+    setPaymentInitialized(false); // Reset to allow new initialization
+    setClientSecret(""); // Clear old client secret
+    if (gig) {
+      await initializePaymentIntent(gig._id);
+    }
+  };
+
+  // FIX: Add cleanup to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Cleanup if component unmounts during payment
+      setClientSecret("");
+    };
+  }, []);
+
+  // Authorization checks
   if (user?.role !== 'client') {
     return (
       <div className="container mx-auto p-8">
@@ -85,6 +131,7 @@ function PaymentPage() {
     return (
       <div className="flex justify-center items-center min-h-screen">
         <span className="loading loading-spinner loading-lg"></span>
+        <span className="ml-4">Loading gig details...</span>
       </div>
     );
   }
@@ -94,6 +141,11 @@ function PaymentPage() {
       <div className="container mx-auto p-8">
         <div className="alert alert-error">
           <span>Gig not found.</span>
+        </div>
+        <div className="text-center mt-4">
+          <Link to="/gigfeeds" className="btn btn-primary">
+            Back to Gig Feed
+          </Link>
         </div>
       </div>
     );
@@ -114,6 +166,11 @@ function PaymentPage() {
       <div className="container mx-auto p-8">
         <div className="alert alert-warning">
           <span>No freelancer has been hired for this gig yet.</span>
+        </div>
+        <div className="text-center mt-4">
+          <Link to={`/gigs/${gig._id}`} className="btn btn-primary">
+            View Gig Details
+          </Link>
         </div>
       </div>
     );
@@ -136,7 +193,7 @@ function PaymentPage() {
             <p className="text-gray-600 mb-6">
               The freelancer will receive ${(gig.budget * 0.9).toFixed(2)} after platform fees.
             </p>
-            <div className="card-actions justify-center">
+            <div className="card-actions justify-center gap-4">
               <Link to="/client/payments" className="btn btn-primary">
                 View Payment History
               </Link>
@@ -160,86 +217,106 @@ function PaymentPage() {
         </ul>
       </div>
 
-      {error && <Alert alert={error} />}
+      {error && (
+        <div className="mb-6">
+          <Alert alert={error} type="error" />
+          {gig && (
+            <div className="text-center mt-4">
+              <button 
+                onClick={handleRetryPayment} 
+                className="btn btn-primary"
+                disabled={initializingPayment}
+              >
+                {initializingPayment ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm"></span>
+                    Retrying...
+                  </>
+                ) : (
+                  "Retry Payment Setup"
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Gig Summary */}
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body">
             <h2 className="card-title mb-4">Gig Summary</h2>
-            
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <h3 className="font-semibold text-lg">{gig.title}</h3>
-                <p className="text-gray-600 mt-1">{gig.description}</p>
+                <h3 className="font-semibold">{gig.title}</h3>
+                <p className="text-gray-600 text-sm">{gig.description}</p>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="font-medium text-gray-600">Category:</span>
-                  <p>{gig.category}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Budget Type:</span>
-                  <p className="capitalize">{gig.budgetType}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Location:</span>
-                  <p>{gig.location}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Status:</span>
-                  <span className={`badge ${
-                    gig.status === 'open' ? 'badge-success' :
-                    gig.status === 'in-progress' ? 'badge-warning' :
-                    gig.status === 'completed' ? 'badge-info' : 'badge-error'
-                  }`}>
-                    {gig.status}
-                  </span>
-                </div>
+              <div className="flex justify-between">
+                <span>Budget:</span>
+                <span className="font-bold text-success">${gig.budget}</span>
               </div>
-
-              {/* Hired Freelancer */}
-              <div className="border-t pt-4">
-                <h4 className="font-semibold mb-3">Hired Freelancer</h4>
-                <div className="flex items-center gap-3">
-                  <div className="avatar">
-                    <div className="w-12 h-12 rounded-full">
-                      <img 
-                        src={gig.hiredFreelancer?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80'} 
-                        alt={gig.hiredFreelancer?.username}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-semibold">{gig.hiredFreelancer?.username}</div>
-                    <div className="text-sm text-gray-600">Freelancer</div>
-                  </div>
-                </div>
+              <div className="flex justify-between">
+                <span>Platform Fee (10%):</span>
+                <span className="text-warning">-${(gig.budget * 0.1).toFixed(2)}</span>
               </div>
+              <div className="flex justify-between border-t pt-2">
+                <span>Freelancer Receives:</span>
+                <span className="font-bold text-primary">${(gig.budget * 0.9).toFixed(2)}</span>
+              </div>
+              {gig.hiredFreelancer && (
+                <div className="mt-4 p-3 bg-base-200 rounded-lg">
+                  <p className="text-sm">
+                    Payment to: <strong>{gig.hiredFreelancer.username}</strong>
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
         {/* Payment Section */}
         <div>
-          {clientSecret ? (
+          {initializingPayment ? (
+            <div className="card bg-base-100 shadow-lg">
+              <div className="card-body text-center">
+                <span className="loading loading-spinner loading-lg mb-4"></span>
+                <p>Setting up secure payment...</p>
+              </div>
+            </div>
+          ) : clientSecret ? (
             <Elements 
               stripe={stripePromise}
               options={{
                 clientSecret: clientSecret,
+                appearance: {
+                  theme: 'stripe',
+                },
               }}
             >
               <PaymentForm 
                 gig={gig} 
                 onPaymentSuccess={handlePaymentSuccess}
+                clientSecret={clientSecret}
               />
             </Elements>
           ) : (
             <div className="card bg-base-100 shadow-lg">
               <div className="card-body text-center">
-                <span className="loading loading-spinner loading-lg mb-4"></span>
-                <p>Initializing payment...</p>
+                <div className="text-error mb-4">Payment setup failed</div>
+                <button 
+                  onClick={handleRetryPayment} 
+                  className="btn btn-primary"
+                  disabled={initializingPayment}
+                >
+                  {initializingPayment ? (
+                    <>
+                      <span className="loading loading-spinner loading-sm"></span>
+                      Setting up...
+                    </>
+                  ) : (
+                    "Try Again"
+                  )}
+                </button>
               </div>
             </div>
           )}

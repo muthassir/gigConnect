@@ -222,28 +222,26 @@ const CreateGig = () => {
 
               {/* skills required */}
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-semibold">
-                    Skills Required (comma separated)
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  name="skillsRequired"
-                  value={typeof formData.skillsRequired === 'string' 
-                    ? formData.skillsRequired 
-                    : formData.skillsRequired.join(', ')}
-                  onChange={handleSkillsChange}
-                  placeholder="e.g., React, Node.js, UI Design, Content Writing"
-                  className="input input-bordered w-full"
-                />
-                <label className="label">
-                  <span className="label-text-alt">
-                    Separate multiple skills with commas
-                  </span>
-                </label>
-              </div>
-
+      <label className="label">
+        <span className="label-text font-semibold">
+          Skills Required (comma separated)
+        </span>
+      </label>
+      <input
+        type="text"
+        name="skillsRequired"
+        value={formData.skillsRequired} // Direct string value
+        onChange={handleChange} // Use the same handleChange
+        placeholder="e.g., React, Node.js, UI Design, Content Writing"
+        className="input input-bordered w-full"
+      />
+      <label className="label">
+        <span className="label-text-alt">
+          Separate multiple skills with commas
+        </span>
+      </label>
+    </div>
+    
               {/* submit fomr */}
               <div className="form-control mt-8">
                 <div className="flex gap-4">

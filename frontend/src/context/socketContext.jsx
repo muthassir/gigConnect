@@ -11,10 +11,9 @@ export const SocketProvider = ({ children }) => {
 
 
   useEffect(() => {
-    // Only create socket if it doesn't exist
     if (!socketRef.current) {
       socketRef.current = io(HOST, {
-        transports: ["websocket", "polling"], // Add polling as fallback
+        transports: ["websocket", "polling"], 
         withCredentials: true,
         autoConnect: true,
         reconnection: true,
@@ -56,8 +55,7 @@ export const SocketProvider = ({ children }) => {
     }
 
     return () => {
-      // Don't disconnect on cleanup, let it manage reconnections
-      // socketRef.current?.disconnect();
+     
     };
   }, []);
 

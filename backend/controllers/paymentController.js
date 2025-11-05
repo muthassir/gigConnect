@@ -19,6 +19,7 @@ exports.createPaymentIntent = async (req, res) => {
       });
     }
 
+    // Check if client owns the gig
     if (gig.client._id.toString() !== req.userId) {
       return res.status(403).json({
         success: false,
@@ -33,12 +34,44 @@ exports.createPaymentIntent = async (req, res) => {
       });
     }
 
-    const existingPayment = await Payment.findOne({
+    // FIX: Check for existing payment intent first
+    let payment = await Payment.findOne({
+      gig: gigId,
+      status: { $in: ['pending', 'processing'] }
+    });
+
+    // If existing pending payment exists, use it
+    if (payment && payment.stripePaymentIntentId) {
+      try {
+        const existingIntent = await stripe.paymentIntents.retrieve(payment.stripePaymentIntentId);
+        
+        // If existing intent is still valid, return it
+        if (existingIntent.status === 'requires_payment_method' || 
+            existingIntent.status === 'requires_confirmation') {
+          
+          console.log('Reusing existing payment intent:', payment.stripePaymentIntentId);
+          
+          return res.json({
+            success: true,
+            clientSecret: existingIntent.client_secret,
+            paymentId: payment._id,
+            amount: gig.budget,
+            existingPayment: true
+          });
+        }
+      } catch (stripeError) {
+        // If stripe intent doesn't exist, continue to create new one
+        console.log('Existing stripe intent invalid, creating new one');
+      }
+    }
+
+    // Check for completed payment
+    const completedPayment = await Payment.findOne({
       gig: gigId,
       status: 'completed'
     });
 
-    if (existingPayment) {
+    if (completedPayment) {
       return res.status(400).json({
         success: false,
         message: 'Payment already completed for this gig'
@@ -50,19 +83,19 @@ exports.createPaymentIntent = async (req, res) => {
     const platformFee = Math.round(totalAmount * 0.10); 
     const freelancerEarnings = totalAmount - platformFee;
 
-    // Create payment record
-    const payment = new Payment({
-      gig: gigId,
-      client: req.userId,
-      freelancer: gig.hiredFreelancer._id,
-      amount: gig.budget,
-      platformFee: platformFee / 100,
-      freelancerEarnings: freelancerEarnings / 100,
-      status: 'pending',
-      description: `Payment for gig: ${gig.title}`
-    });
-
-    await payment.save();
+    // Create NEW payment record only if no valid pending one exists
+    if (!payment) {
+      payment = new Payment({
+        gig: gigId,
+        client: req.userId,
+        freelancer: gig.hiredFreelancer._id,
+        amount: gig.budget,
+        platformFee: platformFee / 100,
+        freelancerEarnings: freelancerEarnings / 100,
+        status: 'pending',
+        description: `Payment for gig: ${gig.title}`
+      });
+    }
 
     // Create Stripe Payment Intent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -80,6 +113,7 @@ exports.createPaymentIntent = async (req, res) => {
       },
     });
 
+    // Update payment with stripe intent ID
     payment.stripePaymentIntentId = paymentIntent.id;
     await payment.save();
 
