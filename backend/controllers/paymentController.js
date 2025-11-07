@@ -136,7 +136,7 @@ exports.createPaymentIntent = async (req, res) => {
   }
 };
 
-// Confirm Payment
+// Confirm Payment - ONLY CHANGED THIS FUNCTION
 exports.confirmPayment = async (req, res) => {
   try {
     const { paymentIntentId } = req.body;
@@ -175,10 +175,12 @@ exports.confirmPayment = async (req, res) => {
       payment.transactionId = paymentIntent.id;
       message = 'Payment completed successfully';
       
-      // Update gig status to completed
+      // ✅ CRITICAL FIX: Update gig status to completed
       if (payment.gig) {
-        payment.gig.status = 'completed';
-        await payment.gig.save();
+        await Gig.findByIdAndUpdate(payment.gig._id, { 
+          status: 'completed' 
+        });
+        console.log('Gig status updated to completed for gig:', payment.gig._id);
       }
     } else if (paymentIntent.status === 'processing') {
       updatedStatus = 'processing';

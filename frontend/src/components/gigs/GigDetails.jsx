@@ -256,24 +256,45 @@ const handleReviewSubmitted = (newReview) => {
           </div>
 
           {/* Payment Button */}
-          {user?.role === 'client' && user._id === gig.client?._id && gig.hiredFreelancer && (
-            <div className="mb-6 p-4 bg-success/10 border border-success/20 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-success">Ready to Pay?</h3>
-                  <p className="text-sm text-gray-600">
-                    Complete payment to {gig.hiredFreelancer?.username} for this gig
-                  </p>
-                </div>
-                <button 
-                  onClick={handleMakePayment}
-                  className="btn btn-success"
-                >
-                  Make Payment - ${gig.budget}
-                </button>
-              </div>
-            </div>
-          )}
+{user?.role === 'client' && 
+ user._id === gig.client?._id && 
+ gig.hiredFreelancer && 
+ gig.status === 'in-progress' && ( 
+  <div className="mb-6 p-4 bg-success/10 border border-success/20 rounded-lg">
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="font-semibold text-success">Ready to Pay?</h3>
+        <p className="text-sm text-gray-600">
+          Complete payment to {gig.hiredFreelancer?.username} for this gig
+        </p>
+      </div>
+      <button 
+        onClick={handleMakePayment}
+        className="btn btn-success"
+      >
+        Make Payment - ${gig.budget}
+      </button>
+    </div>
+  </div>
+)}
+
+{/*  gig is completed */}
+{user?.role === 'client' && 
+ user._id === gig.client?._id && 
+ gig.hiredFreelancer && 
+ gig.status === 'completed' && (  // ✅ Show this when status is 'completed'
+  <div className="mb-6 p-4 bg-info/10 border border-info/20 rounded-lg">
+    <div className="flex items-center justify-between">
+      <div>
+        <h3 className="font-semibold text-info">Payment Completed</h3>
+        <p className="text-sm text-gray-600">
+          You've successfully paid {gig.hiredFreelancer?.username} for this gig
+        </p>
+      </div>
+      <span className="badge badge-info badge-lg">Paid</span>
+    </div>
+  </div>
+)}
 
           {/* Application Section */}
           {user && (
@@ -282,7 +303,7 @@ const handleReviewSubmitted = (newReview) => {
                 <div>
                   {hasApplied ? (
                     <div className="alert alert-info">
-                      You have already applied to this gig
+                      You applied to this gig
                     </div>
                   ) : (
                     <div>

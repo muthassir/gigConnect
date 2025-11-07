@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
 const SocketContext = createContext();
@@ -22,35 +22,35 @@ export const SocketProvider = ({ children }) => {
       });
 
       socketRef.current.on("connect", () => {
-        console.log("✅ Connected to socket server", socketRef.current.id);
+        console.log("Connected to socket server", socketRef.current.id);
         setConnected(true);
       });
 
       socketRef.current.on("disconnect", (reason) => {
-        console.log("❌ Disconnected from socket server", reason);
+        console.log("Disconnected from socket server", reason);
         setConnected(false);
       });
 
       socketRef.current.on("connect_error", (error) => {
-        console.log("❌ Socket connection error:", error.message);
+        console.log("Socket connection error:", error.message);
         setConnected(false);
       });
 
       socketRef.current.on("reconnect", (attempt) => {
-        console.log("🔄 Reconnected to socket server, attempt:", attempt);
+        console.log("Reconnected to socket server, attempt:", attempt);
         setConnected(true);
       });
 
       socketRef.current.on("reconnect_attempt", (attempt) => {
-        console.log("🔄 Attempting to reconnect:", attempt);
+        console.log("Attempting to reconnect:", attempt);
       });
 
       socketRef.current.on("reconnect_error", (error) => {
-        console.log("❌ Reconnection error:", error);
+        console.log("Reconnection error:", error);
       });
 
       socketRef.current.on("reconnect_failed", () => {
-        console.log("❌ Reconnection failed");
+        console.log(" Reconnection failed");
       });
     }
 

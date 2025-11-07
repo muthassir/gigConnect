@@ -9,7 +9,7 @@ function MyApplications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [filter, setFilter] = useState("all")
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     loadMyApplications();
@@ -65,7 +65,7 @@ function MyApplications() {
     total: applications.length,
     pending: applications.filter(gig => getMyApplication(gig)?.status === 'pending').length,
     accepted: applications.filter(gig => getMyApplication(gig)?.status === 'accepted').length,
-    rejected: applications.filter(gig => getMyApplication(gig)?.status === 'rejected').length,
+    rejected: applications.filter(gig => getMyApplication(gig)?.status === 'rejected').length
   };
 
   if (user?.role !== 'freelancer') {
@@ -211,10 +211,10 @@ function MyApplications() {
                       <div className="flex items-center gap-3 p-3 bg-base-200 rounded">
                         <div className="avatar">
                           <div className="w-10 h-10 rounded-full">
-                           <img 
-  src={gig.client?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80'} 
-  alt={gig.client?.username}
-/>
+                            <img 
+                              src={gig.client?.avatar || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80'} 
+                              alt={gig.client?.username}
+                            />
                           </div>
                         </div>
                         <div>
@@ -229,18 +229,24 @@ function MyApplications() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div>
                             <span className="font-semibold">Bid Amount:</span>
-                            <div className="text-success font-medium">${myApplication?.bidAmount}</div>
+                            <div className="text-success font-medium">
+                              ${myApplication?.bidAmount || 'N/A'}
+                            </div>
                           </div>
                           <div>
                             <span className="font-semibold">Applied On:</span>
                             <div className="text-gray-600">
-                              {myApplication?.appliedAt ? new Date(myApplication.appliedAt).toLocaleDateString() : 'N/A'}
+                              {myApplication?.appliedAt ? new Date(myApplication.appliedAt).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              }) : 'N/A'}
                             </div>
                           </div>
                         </div>
                         <div className="mt-2">
                           <span className="font-semibold">Proposal:</span>
-                          <p className="text-gray-700 mt-1">{myApplication?.proposal}</p>
+                          <p className="text-gray-700 mt-1">{myApplication?.proposal || 'No proposal provided'}</p>
                         </div>
                       </div>
 
@@ -258,8 +264,6 @@ function MyApplications() {
                         </div>
                       )}
                     </div>
-
-
 
                     <div className="flex flex-col gap-2 lg:w-48">
                       <Link 
@@ -282,7 +286,11 @@ function MyApplications() {
                       )}
 
                       <div className="text-xs text-gray-500 text-center mt-2">
-                        Applied: {myApplication?.appliedAt ? new Date(myApplication.appliedAt).toLocaleDateString() : 'N/A'}
+                        Applied: {myApplication?.appliedAt ? new Date(myApplication.appliedAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        }) : 'N/A'}
                       </div>
                     </div>
                   </div>
